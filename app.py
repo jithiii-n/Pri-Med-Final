@@ -1,9 +1,10 @@
+# app.py
 from flask import Flask, render_template
-
-from upload import upload_bp
+from upload import upload_bp, ConvNet # Import ConvNet class from upload.py
 
 app = Flask(__name__)
 app.register_blueprint(upload_bp, url_prefix='/upload')
+
 @app.route('/')
 def index():
     return render_template('index.html')
