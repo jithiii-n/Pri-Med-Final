@@ -4,234 +4,221 @@
 <head>
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Contact - Nova Bootstrap Template</title>
-  <meta name="description" content="">
-  <meta name="keywords" content="">
+  <title>Research - Encrypted CNN</title>
+  <meta name="description" content="Encrypted Convolutional Neural Networks (CNN) Project">
+  <meta name="keywords" content="Encrypted CNN, Homomorphic Encryption, Research, GitHub, Colab, Papers">
 
   <!-- Favicons -->
-  <link href="img/favicon.png" rel="icon">
-  <link href="img/apple-touch-icon.png" rel="apple-touch-icon">
+  <link href="{{ url_for('static', filename='img/favicon.png') }}" rel="icon">
+  <link href="{{ url_for('static', filename='img/apple-touch-icon.png') }}" rel="apple-touch-icon">
 
   <!-- Fonts -->
   <link href="https://fonts.googleapis.com" rel="preconnect">
   <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Montserrat:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900&display=swap" rel="stylesheet">
 
   <!-- Vendor CSS Files -->
-  <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
-  <link href="vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
-  <link href="vendor/aos/aos.css" rel="stylesheet">
-  <link href="vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
-  <link href="vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/aos/aos.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
+  <link href="{{ url_for('static', filename='vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
 
   <!-- Main CSS File -->
-  <link href="static/main.css" rel="stylesheet">
+  <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet">
 
-  <!-- =======================================================
-  * Template Name: Nova
-  * Template URL: https://bootstrapmade.com/nova-bootstrap-business-template/
-  * Updated: Aug 07 2024 with Bootstrap v5.3.3
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
+  <style>
+    /* Custom media queries for responsive design */
+    @media (max-width: 768px) {
+      .header .container-fluid {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .header .logo {
+        margin-bottom: 1rem;
+      }
+
+      .navmenu ul {
+        flex-direction: column;
+        margin-top: 1rem;
+      }
+
+      .navmenu ul li {
+        padding: 0.5rem 0;
+      }
+
+      .research .container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+      }
+
+      .info-item {
+        margin-bottom: 1rem;
+      }
+
+      .footer-top {
+        text-align: center;
+      }
+
+      .footer-contact {
+        text-align: center;
+      }
+    }
+
+    @media (max-width: 576px) {
+      .research .container {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+
+      .info-item i {
+        font-size: 2rem;
+      }
+
+      .footer-bottom {
+        font-size: 0.875rem;
+      }
+    }
+  </style>
 </head>
 
-<body class="contact-page">
+<body class="research-page">
 
   <header id="header" class="header d-flex align-items-center fixed-top">
     <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
-
-      <a href="index.html" class="logo d-flex align-items-center">
-        <!-- Uncomment the line below if you also wish to use an image logo -->
-        <!-- <img src="static/img/logo.png" alt=""> -->
-        <h1 class="sitename">Nova</h1>
+      <a href="{{ url_for('index') }}" class="logo d-flex align-items-center">
+        <h1 class="sitename">Encrypted CNN</h1>
       </a>
 
       <nav id="navmenu" class="navmenu">
         <ul>
-          <li><a href="index.html">Home<br></a></li>
-
-
-
+          <li><a href="{{ url_for('index') }}">Home</a></li>
+          <li><a href="{{ url_for('contact') }}">Research Work</a></li>
         </ul>
         <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
       </nav>
-
     </div>
   </header>
 
   <main class="main">
 
     <!-- Page Title -->
-    <div class="page-title dark-background" data-aos="fade" style="background-image: url(assets/img/contact-page-title-bg.jpg);">
+    <div class="page-title dark-background" data-aos="fade" style="background-image: url({{ url_for('static', filename='assets/img/research-page-title-bg.jpg') }});">
       <div class="container">
-        <h1>Contact</h1>
+        <h1>Encrypted Convolutional Neural Networks (CNN)</h1>
         <nav class="breadcrumbs">
           <ol>
-            <li><a href="index.html">Home</a></li>
-            <li class="current">Contact</li>
+            <li><a href="{{ url_for('index') }}">Home</a></li>
+            <li class="current">Research Work</li>
           </ol>
         </nav>
       </div>
     </div><!-- End Page Title -->
 
-    <!-- Contact Section -->
-    <section id="contact" class="contact section">
-
+    <!-- Research Section -->
+    <section id="research" class="research section">
       <div class="container position-relative" data-aos="fade-up" data-aos-delay="100">
-
         <div class="row gy-4">
-
-          <div class="col-lg-5">
+          <div class="col-lg-6">
             <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="200">
-              <i class="bi bi-geo-alt flex-shrink-0"></i>
+              <i class="bi bi-file-earmark-code flex-shrink-0"></i>
               <div>
-                <h3>Address</h3>
-                <p>A108 Adam Street, New York, NY 535022</p>
+                <h3>Project Overview</h3>
+                <p>This project explores the use of encrypted Convolutional Neural Networks (CNN) through homomorphic encryption. By utilizing this encryption technique, we can train CNNs on encrypted data without compromising privacy or security.</p>
               </div>
             </div><!-- End Info Item -->
 
             <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="300">
-              <i class="bi bi-telephone flex-shrink-0"></i>
+              <i class="bi bi-book flex-shrink-0"></i>
               <div>
-                <h3>Call Us</h3>
-                <p>+1 5589 55488 55</p>
+                <h3>Research Paper</h3>
+                <p>Read the full research paper: <a href="path_to_your_research_paper.pdf" target="_blank">Download Research Paper</a></p>
               </div>
             </div><!-- End Info Item -->
 
             <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="400">
-              <i class="bi bi-envelope flex-shrink-0"></i>
+              <i class="bi bi-file-earmark-text flex-shrink-0"></i>
               <div>
-                <h3>Email Us</h3>
-                <p>info@example.com</p>
+                <h3>Colab Notebook</h3>
+                <p>Access the interactive Colab notebook to experiment with the Encrypted CNN model: <a href="https://colab.research.google.com/your_notebook_link" target="_blank">Open Colab Notebook</a></p>
               </div>
             </div><!-- End Info Item -->
 
           </div>
 
-          <div class="col-lg-7">
-            <form action="forms/contact.php" method="post" class="php-email-form" data-aos="fade-up" data-aos-delay="500">
-              <div class="row gy-4">
-
-                <div class="col-md-6">
-                  <input type="text" name="name" class="form-control" placeholder="Your Name" required="">
-                </div>
-
-                <div class="col-md-6 ">
-                  <input type="email" class="form-control" name="email" placeholder="Your Email" required="">
-                </div>
-
-                <div class="col-md-12">
-                  <input type="text" class="form-control" name="subject" placeholder="Subject" required="">
-                </div>
-
-                <div class="col-md-12">
-                  <textarea class="form-control" name="message" rows="6" placeholder="Message" required=""></textarea>
-                </div>
-
-                <div class="col-md-12 text-center">
-                  <div class="loading">Loading</div>
-                  <div class="error-message"></div>
-                  <div class="sent-message">Your message has been sent. Thank you!</div>
-
-                  <button type="submit">Send Message</button>
-                </div>
-
-              </div>
-            </form>
-          </div><!-- End Contact Form -->
-
-        </div>
-
-      </div>
-
-    </section><!-- /Contact Section -->
-
-  </main>
-
-  <footer id="footer" class="footer light-background">
-
-    <div class="footer-top">
-      <div class="container">
-        <div class="row gy-4">
-          <div class="col-lg-5 col-md-12 footer-about">
-            <a href="index.html" class="logo d-flex align-items-center">
-              <span class="sitename">Nova</span>
-            </a>
-            <p>Cras fermentum odio eu feugiat lide par naso tierra. Justo eget nada terra videa magna derita valies darta donna mare fermentum iaculis eu non diam phasellus.</p>
-            <div class="social-links d-flex mt-4">
-              <a href=""><i class="bi bi-twitter-x"></i></a>
-              <a href=""><i class="bi bi-facebook"></i></a>
-              <a href=""><i class="bi bi-instagram"></i></a>
-              <a href=""><i class="bi bi-linkedin"></i></a>
+          <div class="col-lg-6">
+            <h3>GitHub Repository</h3>
+            <p>For the source code and further details, visit the GitHub repository: <a href="https://github.com/yourusername/encrypted-cnn" target="_blank">Encrypted CNN GitHub Repository</a></p>
+            <div class="mt-4">
+              <h4>Project Structure:</h4>
+              <ul>
+                <li><strong>README</strong>: Overview of the project and setup instructions.</li>
+                <li><strong>Code</strong>: Implementation of homomorphic encryption in CNN models.</li>
+                <li><strong>Notebooks</strong>: Colab notebooks for interactive testing and experimentation.</li>
+                <li><strong>Research Paper</strong>: A detailed paper describing the encryption methods used in CNNs.</li>
+              </ul>
             </div>
           </div>
 
-          <div class="col-lg-2 col-6 footer-links">
-            <h4>Useful Links</h4>
-            <ul>
-              <li><a href="#">Home</a></li>
-              <li><a href="#">About us</a></li>
-              <li><a href="#">Services</a></li>
-              <li><a href="#">Terms of service</a></li>
-              <li><a href="#">Privacy policy</a></li>
-            </ul>
-          </div>
+        </div>
 
-          <div class="col-lg-2 col-6 footer-links">
-            <h4>Our Services</h4>
-            <ul>
-              <li><a href="#">Web Design</a></li>
-              <li><a href="#">Web Development</a></li>
-              <li><a href="#">Product Management</a></li>
-              <li><a href="#">Marketing</a></li>
-              <li><a href="#">Graphic Design</a></li>
-            </ul>
-          </div>
+      </div>
 
-          <div class="col-lg-3 col-md-12 footer-contact text-center text-md-start">
+    </section><!-- /Research Section -->
+
+    <!-- CKKS Encryption Section -->
+    <section id="ckks" class="research section">
+      <div class="container position-relative" data-aos="fade-up" data-aos-delay="100">
+        <h2>CKKS Encryption in Encrypted CNN</h2>
+        <p>The CKKS (Cheon-Kim-Kim-Song) scheme is a leveled homomorphic encryption scheme that supports approximate arithmetic on encrypted data. It allows the encryption of real-valued data, making it an ideal fit for machine learning tasks such as training neural networks on encrypted data. CKKS allows operations such as addition, multiplication, and rotation on encrypted data, with the ability to support multiple levels of precision, which is crucial for applications in privacy-preserving machine learning.</p>
+
+        <p>In our project, CKKS encryption is leveraged to train Convolutional Neural Networks (CNNs) on encrypted data without decrypting it. The main challenge in encrypted machine learning is that the encrypted data is represented as ciphertext, which can only be manipulated through specific homomorphic operations. The CKKS scheme allows CNNs to perform convolutions, activations, and pooling operations while keeping the data encrypted, ensuring privacy and security throughout the training process.</p>
+
+        <h3>Training Methodology</h3>
+        <p>The training methodology for our Encrypted CNN leverages the CKKS scheme to securely process and train on encrypted datasets. The entire training pipeline is designed to operate within the encrypted domain, ensuring that sensitive data never needs to be decrypted. Below is an overview of our training methodology:</p>
+
+        <ul>
+          <li><strong>Data Encryption:</strong> The training data is first encrypted using CKKS encryption before being fed into the CNN model. This ensures that sensitive information, such as images or other personal data, remains confidential.</li>
+          <li><strong>Forward Propagation:</strong> During the forward pass, each layer of the CNN performs operations such as convolution and activation on the encrypted data. The CKKS scheme supports approximate computations, which is essential for maintaining the accuracy of the network while preserving privacy.</li>
+          <li><strong>Backpropagation:</strong> The backpropagation process updates the model parameters (weights) using the encrypted gradients, enabling the model to learn from the encrypted data without exposing it.</li>
+          <li><strong>Decryption:</strong> After training, the final model can be decrypted to extract the learned parameters, but the training data itself remains encrypted throughout the process.</li>
+        </ul>
+
+      </div>
+    </section><!-- /CKKS Encryption Section -->
+
+  </main>
+
+  <!-- Footer -->
+  <footer id="footer" class="footer">
+    <div class="footer-top">
+      <div class="container">
+        <div class="row gy-4">
+          <div class="col-lg-4 footer-contact">
             <h4>Contact Us</h4>
-            <p>A108 Adam Street</p>
-            <p>New York, NY 535022</p>
-            <p>United States</p>
-            <p class="mt-4"><strong>Phone:</strong> <span>+1 5589 55488 55</span></p>
-            <p><strong>Email:</strong> <span>info@example.com</span></p>
+            <p>For further inquiries, reach out to us:</p>
+            <p>Email: <strong>support@encryptedcnn.com</strong></p>
           </div>
-
         </div>
       </div>
     </div>
 
-    <div class="container copyright text-center">
-      <p>© <span>Copyright</span> <strong class="px-1 sitename">Nova</strong> <span>All Rights Reserved</span></p>
-      <div class="credits">
-        <!-- All the links in the footer should remain intact. -->
-        <!-- You can delete the links only if you've purchased the pro version. -->
-        <!-- Licensing information: https://bootstrapmade.com/license/ -->
-        <!-- Purchase the pro version with working PHP/AJAX contact form: [buy-url] -->
-        Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a> Distributed by <a href="https://themewagon.com">ThemeWagon</a>
+    <div class="footer-bottom">
+      <div class="container text-center">
+        <p>&copy; 2024 Encrypted CNN. All Rights Reserved.</p>
       </div>
     </div>
-
-  </footer>
-
-  <!-- Scroll Top -->
-  <a href="#" id="scroll-top" class="scroll-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
-
-  <!-- Preloader -->
-  <div id="preloader"></div>
+  </footer><!-- /Footer -->
 
   <!-- Vendor JS Files -->
-  <script src="vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-  <script src="vendor/php-email-form/validate.js"></script>
-  <script src="vendor/aos/aos.js"></script>
-  <script src="vendor/glightbox/js/glightbox.min.js"></script>
-  <script src="vendor/swiper/swiper-bundle.min.js"></script>
-  <script src="vendor/imagesloaded/imagesloaded.pkgd.min.js"></script>
-  <script src="vendor/isotope-layout/isotope.pkgd.min.js"></script>
+  <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/aos/aos.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/glightbox/js/glightbox.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='vendor/swiper/swiper-bundle.min.js') }}"></script>
 
   <!-- Main JS File -->
-  <script src="static/main.js"></script>
+  <script src="{{ url_for('static', filename='main.js') }}"></script>
 
 </body>
 
