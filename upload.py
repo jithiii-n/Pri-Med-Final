@@ -1,177 +1,176 @@
 import torch
-import torch.nn as nn
 import tenseal as ts
 from torchvision import transforms
 from PIL import Image
 from flask import Flask, Blueprint, request, redirect, render_template
 from werkzeug.utils import secure_filename
+import os
+import pickle
+import shutil
+import torch.nn as nn
 
-# Define the 8-layer convolutional neural network model
-class ConvNet(nn.Module):
-    def __init__(self, hidden=64, output=2):  # Binary output (benign vs. malignant)
-        super(ConvNet, self).__init__()
+# Define label mappings for BreastMNIST dataset
+LABELS = {0: 'Benign', 1: 'Malignant'}
 
-        # Convolutional layers (3 layers)
-        self.conv1 = nn.Conv2d(3, 32, kernel_size=3, stride=1, padding=1)  # 3 input channels (RGB)
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3, stride=1, padding=1)
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3, stride=1, padding=1)
-
-        # MaxPooling layers (2 layers)
-        self.pool1 = nn.MaxPool2d(2, 2)  # Reduces size by half
-        self.pool2 = nn.MaxPool2d(2, 2)
-
-        # Flatten layer before fully connected layer
-        self.flatten = nn.Flatten()
-
-        # Compute output size from convolution and pooling layers
-        self.fc1_input_size = 128 * 32 * 32  # After two max pooling layers (128x128 -> 32x32)
-
-        # Fully connected layers (2 layers)
-        self.fc1 = nn.Linear(self.fc1_input_size, hidden)  # Adjusted to match output size after conv and pooling
-        self.fc2 = nn.Linear(hidden, output)  # Output 2 classes: benign, malignant
-
-    def piecewise_linear(self, x):
-        """Piecewise linear activation function."""
-        return torch.where(x < 0, 0.1 * x, x)  # Example: Linear in positive region, scaled negative region
+# Model definition
+class BreastMNISTModel(nn.Module):
+    def __init__(self):
+        super(BreastMNISTModel, self).__init__()
+        self.conv1 = nn.Conv2d(1, 16, kernel_size=3, stride=1, padding=1)
+        self.relu = nn.ReLU()
+        self.avg_pool = nn.AvgPool2d(kernel_size=2, stride=2)
+        self.conv2 = nn.Conv2d(16, 32, kernel_size=3, stride=1, padding=1)
+        self.fc1 = nn.Linear(32 * 7 * 7, 128)
+        self.fc2 = nn.Linear(128, 2)
 
     def forward(self, x):
-        # Forward pass through convolutional and pooling layers
-        x = self.pool1(self.piecewise_linear(self.conv1(x)))
-        x = self.pool2(self.piecewise_linear(self.conv2(x)))
-        x = self.pool2(self.piecewise_linear(self.conv3(x)))  # Applying second pooling after third conv
+        x = self.relu(self.conv1(x))
+        x = self.avg_pool(x)
+        x = self.relu(self.conv2(x))
+        x = self.avg_pool(x)
+        x = x.view(x.size(0), -1)
+        x = self.relu(self.fc1(x))
+        return self.fc2(x)
 
-        # Flatten the output for fully connected layers
-        x = self.flatten(x)
+# Encryption utilities
+def generate_keys():
+    try:
+        bits_scale = 26
+        context = ts.context(
+            ts.SCHEME_TYPE.CKKS,
+            poly_modulus_degree=8192,
+            coeff_mod_bit_sizes=[31, bits_scale, bits_scale, bits_scale, bits_scale, bits_scale, bits_scale, 31]
+        )
+        context.global_scale = pow(2, bits_scale)
+        context.generate_galois_keys()
 
-        # Fully connected layers with piecewise linear activation
-        x = self.piecewise_linear(self.fc1(x))
-        x = self.fc2(x)
-        return x
+        loc = os.path.abspath('static/uploads/')
+        os.makedirs(loc, exist_ok=True)
+        prvt_key_loc = os.path.join(loc, 'private_key_ctx.pickle')
+        pbl_key_loc = os.path.join(loc, 'public_key_ctx.pickle')
 
-# Encapsulate the model with encryption logic
-class EncConvNet:
-    def __init__(self, torch_nn):
-        # Extract weights and biases for homomorphic encryption
-        self.conv1_weight = torch_nn.conv1.weight.data.view(
-            torch_nn.conv1.out_channels, torch_nn.conv1.kernel_size[0], torch_nn.conv1.kernel_size[1]
-        ).tolist()
-        self.conv1_bias = torch_nn.conv1.bias.data.tolist()
+        with open(prvt_key_loc, 'wb') as handle:
+            pickle.dump(context.serialize(save_secret_key=True), handle, protocol=pickle.HIGHEST_PROTOCOL)
+        with open(pbl_key_loc, 'wb') as handle:
+            pickle.dump(context.serialize(save_secret_key=False), handle, protocol=pickle.HIGHEST_PROTOCOL)
 
-        self.conv2_weight = torch_nn.conv2.weight.data.view(
-            torch_nn.conv2.out_channels, torch_nn.conv2.kernel_size[0], torch_nn.conv2.kernel_size[1]
-        ).tolist()
-        self.conv2_bias = torch_nn.conv2.bias.data.tolist()
+        print("Keys successfully generated.")
+        return prvt_key_loc, pbl_key_loc
+    except Exception as e:
+        print(f"Error generating keys: {e}")
+        return None, None
 
-        self.conv3_weight = torch_nn.conv3.weight.data.view(
-            torch_nn.conv3.out_channels, torch_nn.conv3.kernel_size[0], torch_nn.conv3.kernel_size[1]
-        ).tolist()
-        self.conv3_bias = torch_nn.conv3.bias.data.tolist()
+def load_keys():
+    loc = os.path.abspath('static/uploads/')
+    prvt_key_loc = os.path.join(loc, 'private_key_ctx.pickle')
+    pbl_key_loc = os.path.join(loc, 'public_key_ctx.pickle')
 
-        self.fc1_weight = torch_nn.fc1.weight.T.data.tolist()
-        self.fc1_bias = torch_nn.fc1.bias.data.tolist()
+    if not os.path.exists(prvt_key_loc) or not os.path.exists(pbl_key_loc):
+        print("Keys not found. Regenerating...")
+        return generate_keys()
+    print("Keys loaded successfully.")
+    return prvt_key_loc, pbl_key_loc
 
-        self.fc2_weight = torch_nn.fc2.weight.T.data.tolist()
-        self.fc2_bias = torch_nn.fc2.bias.data.tolist()
-
-    def forward(self, enc_x, context, conv_layers):
-        enc_channels = []
-        input_tensor = enc_x
-
-        # Perform convolutions on encrypted input (using homomorphic operations)
-        for layer_idx, (kernel, bias) in enumerate(conv_layers):
-            kernel_shape = kernel.shape
-            stride = 1  # Assuming stride is 1 for simplicity
-
-            # Perform im2col encoding
-            input_tensor = ts.im2col_encoding(
-                context, input_tensor.tolist(), kernel_shape[0], kernel_shape[1], stride
-            )
-
-            # Homomorphic convolution (im2col encoding and then applying kernel)
-            conv_output = input_tensor * kernel + bias
-            enc_channels.append(conv_output)
-
-        # Concatenate the channels from each convolution layer
-        enc_x = ts.CKKSVector.pack_vectors(enc_channels)
-        enc_x = enc_x.reshape(enc_x.size(0), -1)  # Flatten for fully connected layer
-
-        # Fully connected layers (matrix multiplication)
-        enc_x = enc_x.mm(self.fc1_weight) + self.fc1_bias
-        enc_x.square_()  # Homomorphic square operation
-        enc_x = enc_x.mm(self.fc2_weight) + self.fc2_bias
-
-        return enc_x
-
-    def __call__(self, *args, **kwargs):
-        return self.forward(*args, **kwargs)
+def encrypt_tensor(img_tensor, public_key_serialized):
+    try:
+        print(f"Original tensor shape: {img_tensor.shape}")
+        context = ts.context_from(public_key_serialized)
+        flat_tensor = img_tensor.view(-1).numpy().tolist()
+        encrypted_vector = ts.ckks_vector(context, flat_tensor)
+        print(f"Encrypted vector length: {len(flat_tensor)}")
+        return encrypted_vector
+    except Exception as e:
+        print(f"Error during encryption: {e}")
+        return None
 
 
-# Encrypt image tensor
-def encrypt_tensor(img_tensor, context):
-    # Reshaping tensor and ensuring it's contiguous before encryption
-    img_tensor = img_tensor.reshape(-1)  # Flatten tensor
-    return ts.ckks_vector(context, img_tensor.tolist())
+def decrypt_tensor(enc_tensor_serialized, private_key_serialized):
+    try:
+        context = ts.context_from(private_key_serialized)
+        ckks_vector = ts.ckks_vector_from(context, enc_tensor_serialized)
+        decrypted = ckks_vector.decrypt()
+        decrypted_tensor = torch.tensor(decrypted).view(1, 1, 28, 28)
+        print(f"Decrypted tensor shape: {decrypted_tensor.shape}")
+        return decrypted_tensor
+    except Exception as e:
+        print(f"Error during decryption: {e}")
+        return None
 
-# Initialize encryption parameters
-def initialize_tenseal_context():
-    bits_scale = 26
-    context = ts.context(
-        ts.SCHEME_TYPE.CKKS,
-        poly_modulus_degree=8192,
-        coeff_mod_bit_sizes=[31, bits_scale, bits_scale, bits_scale, bits_scale, bits_scale, bits_scale, 31]
-    )
-    context.global_scale = pow(2, bits_scale)
-    context.generate_galois_keys()
-    return context
 
-# Load the model
+# Load model
 def load_model():
-    model = ConvNet()
-    model.load_state_dict(torch.load('models/model.pth', map_location=torch.device('cpu')))
-    model.eval()
-    return model
+    try:
+        model_path = os.path.abspath('models/breastmnist_model.pth')
+        model = BreastMNISTModel()
+        model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+        model.eval()
+        print("Model loaded successfully.")
+        return model
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        return None
 
-
-# Flask app setup (this is only for one Blueprint, app is initialized elsewhere)
-UPLOAD_FOLDER = 'static/uploads'
+# Flask app setup
+UPLOAD_FOLDER = os.path.abspath('static/uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
-# Allowable file check
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def safe_clear_folder(folder_path):
+    for filename in os.listdir(folder_path):
+        file_path = os.path.join(folder_path, filename)
+        try:
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+        except Exception as e:
+            print(f"Failed to delete {file_path}: {e}")
 
-# Create a Blueprint for the upload functionality
 upload_bp = Blueprint('upload', __name__)
 
 @upload_bp.route('/upload', methods=['GET', 'POST'])
 def upload_image():
     if request.method == 'POST':
-        if 'image' not in request.files:
+        safe_clear_folder(UPLOAD_FOLDER)
+        file = request.files.get('image')
+        if not file or file.filename == '' or not allowed_file(file.filename):
             return redirect(request.url)
-        file = request.files['image']
-        if file.filename == '' or not allowed_file(file.filename):
-            return redirect(request.url)
 
-        filename = secure_filename(file.filename)
-        img = Image.open(file.stream)
-        transform = transforms.Compose([transforms.Resize((128, 128)), transforms.ToTensor()])
-        img_tensor = transform(img).unsqueeze(0)
+        try:
+            img = Image.open(file.stream)
+            transform = transforms.Compose([
+                transforms.Resize((28, 28)),
+                transforms.Grayscale(num_output_channels=1),
+                transforms.ToTensor(),
+                transforms.Normalize(mean=[0.5], std=[0.5])
+            ])
+            img_tensor = transform(img).unsqueeze(0)
 
-        context = initialize_tenseal_context()
-        encrypted_img_tensor = encrypt_tensor(img_tensor, context)
+            private_key_path, public_key_path = load_keys()
+            with open(public_key_path, 'rb') as handle:
+                public_key_serialized = pickle.load(handle)
+            with open(private_key_path, 'rb') as handle:
+                private_key_serialized = pickle.load(handle)
 
-        # Load model and prepare encryption wrapper
-        torch_model = load_model()
-        enc_model = EncConvNet(torch_model)
+            encrypted_img_tensor = encrypt_tensor(img_tensor, public_key_serialized)
+            enc_tensor_path = os.path.join(UPLOAD_FOLDER, 'encrypted_img_tensor.pickle')
+            with open(enc_tensor_path, 'wb') as handle:
+                pickle.dump(encrypted_img_tensor.serialize(), handle)
 
-        # Homomorphic inference: apply im2col encoding, then perform forward pass
-        conv_layers = [
-            (torch_model.conv1.weight, torch_model.conv1.bias),
-            (torch_model.conv2.weight, torch_model.conv2.bias),
-            (torch_model.conv3.weight, torch_model.conv3.bias)
-        ]
-        enc_output = enc_model(encrypted_img_tensor, context, conv_layers)
-        return render_template('result.html', output=enc_output)
+            with open(enc_tensor_path, 'rb') as handle:
+                encrypted_img_data = pickle.load(handle)
 
-    return render_template('upload.html')
+            decrypted_img_tensor = decrypt_tensor(encrypted_img_data, private_key_serialized)
+            torch_model = load_model()
+            output = torch_model(decrypted_img_tensor)
+            predicted_label_idx = torch.argmax(output, dim=1).item()
+            predicted_label = LABELS.get(predicted_label_idx, "Unknown")
+
+            return render_template('result.html', output=predicted_label)
+        except Exception as e:
+            print(f"Error processing image: {e}")
+
+
+    return render_template('index.html')
