@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-from upload import upload_bp, BreastMNISTModel, load_model  # Import the model and loader function
+from upload import upload_bp, ConvNet# Import the model and loader function
 
 app = Flask(__name__)
 app.register_blueprint(upload_bp, url_prefix='/upload')
