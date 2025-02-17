@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>Pri-Med - Medical Image Analysis</title>
+    <meta name="description" content="Private Medical Image Analysis Platform">
+    <meta name="keywords" content="medical, private, analysis, AI">
+
+    <!-- Favicons -->
+    <link href="{{ url_for('static', filename='img/favicon.png') }}" rel="icon">
+    <link href="{{ url_for('static', filename='img/apple-touch-icon.png') }}" rel="apple-touch-icon">
+
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Vendor CSS Files -->
+    <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='vendor/aos/aos.css') }}" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-color: #2c4cca;
+            --secondary-color: #1a237e;
+            --accent-color: #4CAF50;
+            --background-color: #f8f9fa;
+            --text-color: #333;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-color);
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 15px 0;
+        }
+
+        .sitename {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 24px;
+            margin: 0;
+        }
+
+        .navmenu ul {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navmenu ul li {
+            margin: 0 20px;
+        }
+
+        .navmenu ul li a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .navmenu ul li a:hover {
+            color: var(--primary-color);
+        }
+
+        .hero {
+            background: linear-gradient(135deg, rgba(44, 76, 202, 0.95), rgba(26, 35, 126, 0.95)),
+                        url('{{ url_for('static', filename='img/background.jpeg') }}');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            padding: 120px 0 60px;
+            min-height: 100vh;
+        }
+
+        .upload-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: 40px auto;
+            text-align: center;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+
+        .form-control {
+            border: 2px dashed var(--primary-color);
+            border-radius: 10px;
+            padding: 40px 20px;
+            background: #f8f9fa;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .form-control:hover {
+            border-color: var(--accent-color);
+            background: #f0f2f5;
+        }
+
+        .btn-primary {
+            background: var(--primary-color);
+            border: none;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .section-title {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-title h2 {
+            font-size: 36px;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .section-title p {
+            font-size: 18px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        #imageUpload {
+            display: none;
+        }
+
+        .upload-label {
+            display: block;
+            padding: 40px;
+            border: 2px dashed var(--primary-color);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .upload-label:hover {
+            border-color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .upload-label i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="index-page">
+    <header id="header" class="header fixed-top">
+        <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
+            <a href="{{ url_for('index') }}" class="logo d-flex align-items-center">
+                <h1 class="sitename">Pri-Med</h1>
+            </a>
+
+            <nav id="navmenu" class="navmenu">
+                <ul>
+                    <li><a href="{{ url_for('index') }}" class="active">Home</a></li>
+                    <li><a href="{{ url_for('about') }}">Dashboard</a></li>
+                    <li><a href="{{ url_for('contact') }}">Research Work</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="main">
+        <section id="hero" class="hero">
+            <div class="container section-title" data-aos="fade-up">
+                <h2>Secure Medical Image Analysis</h2>
+                <p>Upload your medical image for private and secure analysis using advanced encryption</p>
+            </div>
+
+            <div class="container">
+                <div class="upload-container" data-aos="fade-up" data-aos-delay="200">
+                    <form action="{{ url_for('upload.upload_image') }}" method="POST" enctype="multipart/form-data" class="d-flex flex-column align-items-center">
+                        <div class="form-group mb-4">
+                            <label for="imageUpload" class="upload-label">
+                                <i class="bi bi-cloud-upload"></i>
+                                <h3>Drop your image here</h3>
+                                <p>or click to browse</p>
+                            </label>
+                            <input type="file" class="form-control" id="imageUpload" name="image" accept="image/*" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-shield-check me-2"></i>Analyze Securely
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Vendor JS Files -->
+    <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='vendor/aos/aos.js') }}"></script>
+
+    <script>
+        // Initialize AOS
+        AOS.init({
+            duration: 1000,
+            easing: 'ease-in-out'
+        });
+
+        // Handle file input styling
+        document.getElementById('imageUpload').addEventListener('change', function(e) {
+            const fileName = e.target.files[0]?.name;
+            if (fileName) {
+                const label = document.querySelector('.upload-label');
+                label.innerHTML = `
+                    <i class="bi bi-file-earmark-image"></i>
+                    <h3>${fileName}</h3>
+                    <p>Click to change file</p>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

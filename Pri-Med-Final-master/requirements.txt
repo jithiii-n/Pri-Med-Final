@@ -1,0 +1,7 @@
+Flask
+werkzeug
+tensorflow
+tenseal
+torch
+torchvision
+Pillow

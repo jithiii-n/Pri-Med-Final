@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prediction Result</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, #6a11cb, #2575fc);
+            color: #2c3e50;
+        }
+        .result-container {
+            background-color: #ffffff;
+            border-radius: 16px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+            padding: 40px 50px;
+            text-align: center;
+            width: 400px;
+            animation: fadeIn 0.6s ease-in-out;
+        }
+        .result-title {
+            font-size: 2.2em;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        .result-box {
+            font-size: 1.6em;
+            font-weight: 600;
+            color: #27ae60;
+            margin: 30px 0;
+            padding: 20px;
+            border: 2px solid #27ae60;
+            border-radius: 12px;
+            background-color: #e8f5e9;
+            animation: slideUp 0.6s ease-in-out;
+        }
+        .back-button {
+            display: inline-block;
+            padding: 14px 30px;
+            color: #ffffff;
+            background-color: #007BFF;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 500;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+        }
+        .back-button:hover {
+            background-color: #0056b3;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 8px rgba(0, 123, 255, 0.3);
+        }
+        .back-button:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+    </style>
+</head>
+<body>
+    <div class="result-container">
+        <div class="result-title">Prediction Result</div>
+        <div class="result-box">{{ output }}</div>
+        <a href="/" class="back-button">Go Back</a>
+    </div>
+</body>
+</html>
