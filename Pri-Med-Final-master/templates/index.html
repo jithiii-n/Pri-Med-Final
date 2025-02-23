@@ -81,51 +81,33 @@
             min-height: 100vh;
         }
 
-        .upload-container {
+        .options-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .option-card {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .option-card .card {
             background: white;
             border-radius: 20px;
             padding: 40px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: 40px auto;
-            text-align: center;
+            transition: all 0.3s;
         }
 
-        .upload-icon {
+        .option-card .card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .icon-large {
             font-size: 48px;
             color: var(--primary-color);
             margin-bottom: 20px;
-        }
-
-        .form-control {
-            border: 2px dashed var(--primary-color);
-            border-radius: 10px;
-            padding: 40px 20px;
-            background: #f8f9fa;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .form-control:hover {
-            border-color: var(--accent-color);
-            background: #f0f2f5;
-        }
-
-        .btn-primary {
-            background: var(--primary-color);
-            border: none;
-            padding: 12px 30px;
-            border-radius: 30px;
-            font-weight: 600;
-            margin-top: 20px;
-            transition: all 0.3s;
-        }
-
-        .btn-primary:hover {
-            background: var(--secondary-color);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
         }
 
         .section-title {
@@ -142,31 +124,6 @@
         .section-title p {
             font-size: 18px;
             color: rgba(255, 255, 255, 0.9);
-        }
-
-        #imageUpload {
-            display: none;
-        }
-
-        .upload-label {
-            display: block;
-            padding: 40px;
-            border: 2px dashed var(--primary-color);
-            border-radius: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .upload-label:hover {
-            border-color: var(--accent-color);
-            background: rgba(255, 255, 255, 0.2);
-        }
-
-        .upload-label i {
-            font-size: 48px;
-            margin-bottom: 15px;
-            color: white;
         }
     </style>
 </head>
@@ -192,24 +149,35 @@
         <section id="hero" class="hero">
             <div class="container section-title" data-aos="fade-up">
                 <h2>Secure Medical Image Analysis</h2>
-                <p>Upload your medical image for private and secure analysis using advanced encryption</p>
+                <p>Select the type of analysis you need</p>
             </div>
 
             <div class="container">
-                <div class="upload-container" data-aos="fade-up" data-aos-delay="200">
-                    <form action="{{ url_for('upload.upload_image') }}" method="POST" enctype="multipart/form-data" class="d-flex flex-column align-items-center">
-                        <div class="form-group mb-4">
-                            <label for="imageUpload" class="upload-label">
-                                <i class="bi bi-cloud-upload"></i>
-                                <h3>Drop your image here</h3>
-                                <p>or click to browse</p>
-                            </label>
-                            <input type="file" class="form-control" id="imageUpload" name="image" accept="image/*" required>
+                <div class="options-container" data-aos="fade-up" data-aos-delay="200">
+                    <div class="row justify-content-center">
+                        <div class="col-md-5 mb-4">
+                            <a href="{{ url_for('upload_page', type='chest') }}" class="option-card">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <i class="bi bi-lungs-fill icon-large"></i>
+                                        <h3>Chest Xray Analysis</h3>
+                                        <p>Upload chest X-rays for analysis</p>
+                                    </div>
+                                </div>
+                            </a>
                         </div>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="bi bi-shield-check me-2"></i>Analyze Securely
-                        </button>
-                    </form>
+                        <div class="col-md-5 mb-4">
+                            <a href="{{ url_for('upload_page', type='oral') }}" class="option-card">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <i class="bi bi-tooth-fill icon-large"></i>
+                                        <h3>Oral Cancer Analysis</h3>
+                                        <p>Upload oral images for analysis</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -224,19 +192,6 @@
         AOS.init({
             duration: 1000,
             easing: 'ease-in-out'
-        });
-
-        // Handle file input styling
-        document.getElementById('imageUpload').addEventListener('change', function(e) {
-            const fileName = e.target.files[0]?.name;
-            if (fileName) {
-                const label = document.querySelector('.upload-label');
-                label.innerHTML = `
-                    <i class="bi bi-file-earmark-image"></i>
-                    <h3>${fileName}</h3>
-                    <p>Click to change file</p>
-                `;
-            }
         });
     </script>
 </body>
