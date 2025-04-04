@@ -23,17 +23,32 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 class HECNN(nn.Module):
+    """
+    Homomorphic Encryption-compatible CNN model with Chebyshev approximation of ReLU activation.
+    """
+
     def __init__(self):
         super(HECNN, self).__init__()
-        # Modified for RGB input (28*28*3 = 2352)
-        self.fc1 = nn.Linear(2352, 64)  # Increased neurons for color channels
+        self.fc1 = nn.Linear(8112, 64)  # Input size adjusted for 52x52 RGB images
         self.fc2 = nn.Linear(64, 1)
 
+    def chebyshev_activation(self, x):
+        """
+        Chebyshev approximation of ReLU: f(x) = c0 + c1*x + c2*x^2 + c3*x^3 + c4*x^4 + c5*x^5
+        Coefficients: [0.5, 0.25, -0.0208333, 0.00260417, -0.000434028, 0.0000826823]
+        """
+        coeffs = [0.5, 0.25, -0.0208333, 0.00260417, -0.000434028, 0.0000826823]
+        result = coeffs[0]
+        x_power = x.clone()  # Avoid inplace modification
+        for coeff in coeffs[1:]:
+            result += coeff * x_power
+            x_power = x_power * x  # Avoid inplace operation
+        return result
+
     def forward(self, x):
-        # Flatten the input tensor
-        x = x.view(x.size(0), -1)  # Flatten all dimensions except the batch dimension
+        x = x.view(x.size(0), -1)  # Flatten the input
         x = self.fc1(x)
-        x = x * x  # Square activation (HE-friendly)
+        x = self.chebyshev_activation(x)  # Use Chebyshev activation
         x = self.fc2(x)
         return x
 
@@ -62,6 +77,10 @@ def safe_clear_folder(folder):
 
 
 class HEImagePipeline:
+    """
+    Pipeline for training, encrypting, and performing inference on images.
+    """
+
     def __init__(self):
         self.model = HECNN()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -70,7 +89,8 @@ class HEImagePipeline:
         self.context = self.generate_keys()
 
     def load_model(self):
-        model_path = "models/rgbmodel.pth"
+        """Load the pre-trained model."""
+        model_path = "models/rgbmodelnew2.pth"
         if os.path.exists(model_path):
             self.model.load_state_dict(torch.load(model_path, map_location=self.device))
             self.model.eval()
@@ -79,36 +99,32 @@ class HEImagePipeline:
             print("Model file not found in models/ directory!")
 
     def generate_keys(self):
+        """Generate encryption keys for the CKKS scheme."""
         params = {
             "scheme": ts.SCHEME_TYPE.CKKS,
             "poly_modulus_degree": 16384,
-            "coeff_mod_bit_sizes": [60, 40, 40, 40, 40, 40, 40, 60]
+            "coeff_mod_bit_sizes": [60, 40, 40, 40, 40, 40, 40, 60],
         }
         context = ts.context(**params)
-        context.global_scale = 2 ** 40
+        context.global_scale = 2**40
         context.generate_galois_keys()
         return context
 
     def preprocess_image(self, image):
+        """Preprocess the image for inference."""
         transform = transforms.Compose([
-            transforms.Resize((28, 28)),  # Resize to 28x28
+            transforms.Resize((52, 52)),  # Resize to 52x52
             transforms.ToTensor(),  # Convert to tensor
-            transforms.Normalize(mean=[0.485, 0.456, 0.406],  # Normalize with ImageNet stats
-                                std=[0.229, 0.224, 0.225])
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
         ])
-        image = transform(image)
-        image = image.view(-1).cpu().numpy()  # Flatten and convert to numpy
+        image = transform(image).unsqueeze(0)  # Add batch dimension
         return image
 
     def encrypt_data(self, data):
+        """Encrypt input data."""
         try:
-            # Normalize input data to a small range (e.g., [-1, 1])
             data_normalized = data / np.max(np.abs(data))
-
-            # Flatten the data into a 1D vector
             data_flattened = data_normalized.flatten()
-
-            # Encrypt the flattened vector
             encrypted_data = ts.ckks_vector(self.context, data_flattened.tolist())
             return encrypted_data
         except Exception as e:
@@ -135,25 +151,22 @@ class HEImagePipeline:
             raise
 
     def encrypted_inference(self, encrypted_data):
-        """Perform inference on encrypted data"""
+        """Perform inference on encrypted data."""
         try:
-            # Move model weights and biases to CPU and convert to NumPy
+            # Extract model weights and biases
             fc1_weight = self.model.fc1.weight.data.cpu().numpy()
             fc1_bias = self.model.fc1.bias.data.cpu().numpy()
             fc2_weight = self.model.fc2.weight.data.cpu().numpy()
             fc2_bias = self.model.fc2.bias.data.cpu().numpy()
 
-            # Perform encrypted operations
             # Layer 1: fc1
             encrypted_output = encrypted_data.mm(fc1_weight.T) + fc1_bias
-            encrypted_output = encrypted_output.polyval([0, 0, 1])  # Square activation
+
+            # Apply Chebyshev approximation of ReLU
+            encrypted_output = encrypted_output.polyval([0.5, 0.25, -0.0208333, 0.00260417, -0.000434028, 0.0000826823])
 
             # Layer 2: fc2
             encrypted_output = encrypted_output.mm(fc2_weight.T) + fc2_bias
-
-            # Approximate sigmoid activation using a polynomial
-            # sigmoid(x) ≈ 0.5 + 0.15 * x - 0.0015 * x^3
-            encrypted_output = encrypted_output.polyval([0.5, 0.15, 0, -0.0015])
 
             return encrypted_output
         except Exception as e:
@@ -161,8 +174,10 @@ class HEImagePipeline:
             raise
 
     def decrypt_result(self, encrypted_result):
+        """Decrypt the result of encrypted inference."""
         try:
-            return encrypted_result.decrypt()
+            decrypted_result = encrypted_result.decrypt()
+            return decrypted_result
         except Exception as e:
             print(f"Error decrypting result: {str(e)}")
             raise
@@ -188,26 +203,32 @@ def upload_image():
                 img.verify()  # Verify the file is intact
                 img = Image.open(file.stream).convert('RGB')  # Convert to RGB
 
-                # Preprocess and encrypt the image
+                # Preprocess the image
                 preprocessed_image = pipeline.preprocess_image(img)
-                encrypted_image = pipeline.encrypt_data(preprocessed_image)
+
+                # Encrypt the preprocessed image
+                encrypted_image = pipeline.encrypt_data(preprocessed_image.numpy())
 
                 # Save the encrypted image
                 filename = secure_filename(file.filename)
                 encrypted_file_path = os.path.join(UPLOAD_FOLDER, f"{filename}.enc")
                 pipeline.save_encrypted_data(encrypted_image, encrypted_file_path)
 
-            # Perform inference on the encrypted image
-            loaded_encrypted_image = pipeline.load_encrypted_data(encrypted_file_path)
-            encrypted_result = pipeline.encrypted_inference(loaded_encrypted_image)
-            decrypted_result = pipeline.decrypt_result(encrypted_result)
+                # Perform inference on the encrypted image
+                loaded_encrypted_image = pipeline.load_encrypted_data(encrypted_file_path)
+                encrypted_result = pipeline.encrypted_inference(loaded_encrypted_image)
+                decrypted_result = pipeline.decrypt_result(encrypted_result)
 
-            # Get prediction
-            prediction = "Cancer detected" if decrypted_result[0] > 0.5 else "Congrats, You're Healthy"
+                # Get prediction and confidence level
+                prediction = "Congrats, You're Healthy" if decrypted_result[0] > 0.05 else "CANCER"
+                confidence_level = abs(decrypted_result[0])  # Confidence is the absolute value of the result
 
-            return render_template('result.html',
-                                   output=f"Predicted class: {prediction}",
-                                   confidence=f"Confidence: {abs(decrypted_result[0] - 0.5) * 2:.2f}")
+                # Debugging: Print confidence level to terminal
+                print(f"Debug: Confidence Level = {confidence_level:.2f}")
+
+                return render_template('result.html',
+                                      output=f"Predicted class: {prediction}",
+                                      confidence=f"Confidence: {confidence_level:.2f}")
 
         except Exception as e:
             print(f"Error processing image: {e}")

@@ -89,6 +89,7 @@
         .option-card {
             text-decoration: none;
             color: inherit;
+            display: block;
         }
 
         .option-card .card {
@@ -97,11 +98,14 @@
             padding: 40px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
             transition: all 0.3s;
+            height: 100%;
+            border: 2px solid transparent;
         }
 
-        .option-card .card:hover {
+        .option-card:hover .card {
             transform: translateY(-10px);
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            border-color: var(--primary-color);
         }
 
         .icon-large {
@@ -155,8 +159,8 @@
             <div class="container">
                 <div class="options-container" data-aos="fade-up" data-aos-delay="200">
                     <div class="row justify-content-center">
-                        <div class="col-md-5 mb-4">
-                            <a href="{{ url_for('upload_page', type='chest') }}" class="option-card">
+                        <div class="col-md-4 mb-4">
+                            <a href="{{ url_for('upload.upload_image') }}" class="option-card">
                                 <div class="card text-center">
                                     <div class="card-body">
                                         <i class="bi bi-lungs-fill icon-large"></i>
@@ -166,13 +170,24 @@
                                 </div>
                             </a>
                         </div>
-                        <div class="col-md-5 mb-4">
-                            <a href="{{ url_for('upload_page', type='oral') }}" class="option-card">
+                        <div class="col-md-4 mb-4">
+                            <a href="{{ url_for('upload.upload_image') }}" class="option-card">
                                 <div class="card text-center">
                                     <div class="card-body">
                                         <i class="bi bi-tooth-fill icon-large"></i>
                                         <h3>Oral Cancer Analysis</h3>
                                         <p>Upload oral images for analysis</p>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <a href="{{ url_for('upload.upload_image') }}" class="option-card">
+                                <div class="card text-center">
+                                    <div class="card-body">
+                                        <i class="bi bi-heart-pulse-fill icon-large"></i>
+                                        <h3>Breast Cancer Analysis</h3>
+                                        <p>Upload breast images for analysis</p>
                                     </div>
                                 </div>
                             </a>
@@ -188,7 +203,6 @@
     <script src="{{ url_for('static', filename='vendor/aos/aos.js') }}"></script>
 
     <script>
-        // Initialize AOS
         AOS.init({
             duration: 1000,
             easing: 'ease-in-out'

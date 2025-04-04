@@ -1,225 +1,528 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Research - Encrypted CNN</title>
-  <meta name="description" content="Encrypted Convolutional Neural Networks (CNN) Project">
-  <meta name="keywords" content="Encrypted CNN, Homomorphic Encryption, Research, GitHub, Colab, Papers">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Encryption Pipeline Visualization</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6a11cb;
+            --secondary-color: #2575fc;
+            --success-color: #27ae60;
+            --warning-color: #f39c12;
+            --danger-color: #e74c3c;
+            --dark-color: #2c3e50;
+            --light-color: #f9f9f9;
+        }
 
-  <!-- Favicons -->
-  <link href="{{ url_for('static', filename='img/favicon.png') }}" rel="icon">
-  <link href="{{ url_for('static', filename='img/apple-touch-icon.png') }}" rel="apple-touch-icon">
+        body {
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--dark-color);
+        }
 
-  <!-- Fonts -->
-  <link href="https://fonts.googleapis.com" rel="preconnect">
-  <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900&display=swap" rel="stylesheet">
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
 
-  <!-- Vendor CSS Files -->
-  <link href="{{ url_for('static', filename='vendor/bootstrap/css/bootstrap.min.css') }}" rel="stylesheet">
-  <link href="{{ url_for('static', filename='vendor/bootstrap-icons/bootstrap-icons.css') }}" rel="stylesheet">
-  <link href="{{ url_for('static', filename='vendor/aos/aos.css') }}" rel="stylesheet">
-  <link href="{{ url_for('static', filename='vendor/glightbox/css/glightbox.min.css') }}" rel="stylesheet">
-  <link href="{{ url_for('static', filename='vendor/swiper/swiper-bundle.min.css') }}" rel="stylesheet">
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
 
-  <!-- Main CSS File -->
-  <link href="{{ url_for('static', filename='main.css') }}" rel="stylesheet">
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
 
-  <style>
-    /* Custom media queries for responsive design */
-    @media (max-width: 768px) {
-      .header .container-fluid {
-        flex-direction: column;
-        text-align: center;
-      }
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-      .header .logo {
-        margin-bottom: 1rem;
-      }
+        .card {
+            background-color: white;
+            border-radius: 16px;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            margin-bottom: 30px;
+            overflow: hidden;
+        }
 
-      .navmenu ul {
-        flex-direction: column;
-        margin-top: 1rem;
-      }
+        .card-title {
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+            position: relative;
+            padding-bottom: 10px;
+        }
 
-      .navmenu ul li {
-        padding: 0.5rem 0;
-      }
+        .card-title::after {
+            content: "";
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 50px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 2px;
+        }
 
-      .research .container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-      }
+        /* Pipeline Visualization */
+        .pipeline-container {
+            position: relative;
+            padding: 30px 20px;
+        }
 
-      .info-item {
-        margin-bottom: 1rem;
-      }
+        .pipeline {
+            display: flex;
+            justify-content: space-between;
+            position: relative;
+            margin: 80px 0 100px;
+        }
 
-      .footer-top {
-        text-align: center;
-      }
+        .pipeline-step {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            width: 180px;
+        }
 
-      .footer-contact {
-        text-align: center;
-      }
-    }
+        .step-icon {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            border: 3px solid var(--light-color);
+            transition: all 0.3s ease;
+        }
 
-    @media (max-width: 576px) {
-      .research .container {
-        padding-left: 0.5rem;
-        padding-right: 0.5rem;
-      }
+        .step-icon svg {
+            width: 40px;
+            height: 40px;
+            fill: var(--primary-color);
+        }
 
-      .info-item i {
-        font-size: 2rem;
-      }
+        .step-title {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
 
-      .footer-bottom {
-        font-size: 0.875rem;
-      }
-    }
-  </style>
+        .step-time {
+            display: inline-block;
+            padding: 5px 10px;
+            background: #edf2f7;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            margin-top: 10px;
+            color: var(--dark-color);
+            font-weight: 500;
+        }
+
+        .pipeline-line {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #e2e8f0;
+            z-index: 1;
+        }
+
+        .active .step-icon {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 5px rgba(106, 17, 203, 0.1);
+        }
+
+        .completed .step-icon {
+            background: var(--success-color);
+            border-color: var(--success-color);
+        }
+
+        .completed .step-icon svg {
+            fill: white;
+        }
+
+        .progress-line {
+            position: absolute;
+            top: 40px;
+            left: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            z-index: 1;
+            width: 0;
+            transition: width 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+        }
+
+        /* Stats Card */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #718096;
+            font-size: 0.9rem;
+        }
+
+        /* Extra Information */
+        .info-box {
+            background-color: #f8fafc;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .info-box h3 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        /* Buttons */
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 1rem;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(106, 17, 203, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(106, 17, 203, 0.4);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary-color);
+            color: var(--primary-color);
+            box-shadow: none;
+        }
+
+        .btn-outline:hover {
+            background: rgba(106, 17, 203, 0.1);
+        }
+
+        .btn-group {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .btn-group .btn {
+            margin: 0 10px;
+        }
+
+        /* Animations */
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .pulse {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .pipeline {
+                flex-direction: column;
+                align-items: center;
+                margin: 40px 0;
+            }
+
+            .pipeline-step {
+                margin-bottom: 50px;
+                width: 100%;
+            }
+
+            .pipeline-line {
+                width: 4px;
+                height: 100%;
+                left: 50%;
+                top: 0;
+                transform: translateX(-50%);
+            }
+
+            .progress-line {
+                width: 4px;
+                height: 0;
+                left: 50%;
+                transform: translateX(-50%);
+                transition: height 1.5s cubic-bezier(0.65, 0, 0.35, 1);
+            }
+        }
+    </style>
 </head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Encrypted Processing Pipeline</h1>
+            <p>Visualizing how your medical image is securely processed through homomorphic encryption</p>
+        </div>
 
-<body class="research-page">
+        <div class="card">
+            <h2 class="card-title">Pipeline Visualization</h2>
 
-  <header id="header" class="header d-flex align-items-center fixed-top">
-    <div class="container-fluid container-xl position-relative d-flex align-items-center justify-content-between">
-      <a href="{{ url_for('index') }}" class="logo d-flex align-items-center">
-        <h1 class="sitename">Encrypted CNN</h1>
-      </a>
+            <div class="pipeline-container">
+                <div class="pipeline">
+                    <div class="pipeline-step" id="step1">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M4 5h16v14H4V5m1 2v10h14V7H5m6 8H7v-6h4v6m1-5v4h4v-4h-4z"/>
+                            </svg>
+                        </div>
+                        <div class="step-title">Image Upload</div>
+                        <div class="step-description">Your medical image is uploaded and prepared for processing</div>
+                        <span class="step-time">0.2s</span>
+                    </div>
 
-      <nav id="navmenu" class="navmenu">
-        <ul>
-          <li><a href="{{ url_for('index') }}">Home</a></li>
-          <li><a href="{{ url_for('contact') }}">Research Work</a></li>
-        </ul>
-        <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
-      </nav>
-    </div>
-  </header>
+                    <div class="pipeline-step" id="step2">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M12 17a2 2 0 0 0 2-2c0-.7-.4-1.3-.9-1.7L8 10V7l6.9-3.1c.5-.4.9-1 .9-1.7A2 2 0 0 0 13.9.3 2 2 0 0 0 12 0c-1.1 0-2 .9-2 2v5L4 10c0 1.1.9 2 2 2h2v5a2 2 0 0 0 4 0z"/>
+                            </svg>
+                        </div>
+                        <div class="step-title">Preprocessing</div>
+                        <div class="step-description">Image is normalized and prepared for encryption</div>
+                        <span class="step-time">0.5s</span>
+                    </div>
 
-  <main class="main">
+                    <div class="pipeline-step" id="step3">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zM9 6c0-1.66 1.34-3 3-3s3 1.34 3 3v2H9V6zm9 14H6V10h12v10zm-6-3c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2z"/>
+                            </svg>
+                        </div>
+                        <div class="step-title">Encryption</div>
+                        <div class="step-description">Data is encrypted using CKKS homomorphic encryption</div>
+                        <span class="step-time">1.2s</span>
+                    </div>
 
-    <!-- Page Title -->
-    <div class="page-title dark-background" data-aos="fade" style="background-image: url({{ url_for('static', filename='assets/img/research-page-title-bg.jpg') }});">
-      <div class="container">
-        <h1>Encrypted Convolutional Neural Networks (CNN)</h1>
-        <nav class="breadcrumbs">
-          <ol>
-            <li><a href="{{ url_for('index') }}">Home</a></li>
-            <li class="current">Research Work</li>
-          </ol>
-        </nav>
-      </div>
-    </div><!-- End Page Title -->
+                    <div class="pipeline-step" id="step4">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M5 3h14c1.1 0 2 .9 2 2v14c0 1.1-.9 2-2 2H5c-1.1 0-2-.9-2-2V5c0-1.1.9-2 2-2zm14 16V5H5v14h14zm-7-2l-4-4 1.4-1.4 2.6 2.6 5.6-5.6L19 10l-7 7z"/>
+                            </svg>
+                        </div>
+                        <div class="step-title">Secure Inference</div>
+                        <div class="step-description">AI model processes the encrypted data without decryption</div>
+                        <span class="step-time">3.8s</span>
+                    </div>
 
-    <!-- Research Section -->
-    <section id="research" class="research section">
-      <div class="container position-relative" data-aos="fade-up" data-aos-delay="100">
-        <div class="row gy-4">
-          <div class="col-lg-6">
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="200">
-              <i class="bi bi-file-earmark-code flex-shrink-0"></i>
-              <div>
-                <h3>Project Overview</h3>
-                <p>This project explores the use of encrypted Convolutional Neural Networks (CNN) through homomorphic encryption. By utilizing this encryption technique, we can train CNNs on encrypted data without compromising privacy or security.</p>
-              </div>
-            </div><!-- End Info Item -->
+                    <div class="pipeline-step" id="step5">
+                        <div class="step-icon">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M18 8c0-3.31-2.69-6-6-6S6 4.69 6 8v6c0 3.31 2.69 6 6 6s6-2.69 6-6V8zm-6 12c-2.21 0-4-1.79-4-4v-6h8v6c0 2.21-1.79 4-4 4zm0-16c2.21 0 4 1.79 4 4H8c0-2.21 1.79-4 4-4z"/>
+                            </svg>
+                        </div>
+                        <div class="step-title">Decryption</div>
+                        <div class="step-description">Results are securely decrypted for visualization</div>
+                        <span class="step-time">0.6s</span>
+                    </div>
 
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="300">
-              <i class="bi bi-book flex-shrink-0"></i>
-              <div>
-                <h3>Research Paper</h3>
-                <p>Read the full research paper: <a href="path_to_your_research_paper.pdf" target="_blank">Download Research Paper</a></p>
-              </div>
-            </div><!-- End Info Item -->
-
-            <div class="info-item d-flex" data-aos="fade-up" data-aos-delay="400">
-              <i class="bi bi-file-earmark-text flex-shrink-0"></i>
-              <div>
-                <h3>Colab Notebook</h3>
-                <p>Access the interactive Colab notebook to experiment with the Encrypted CNN model: <a href="https://colab.research.google.com/your_notebook_link" target="_blank">Open Colab Notebook</a></p>
-              </div>
-            </div><!-- End Info Item -->
-
-          </div>
-
-          <div class="col-lg-6">
-            <h3>GitHub Repository</h3>
-            <p>For the source code and further details, visit the GitHub repository: <a href="https://github.com/yourusername/encrypted-cnn" target="_blank">Encrypted CNN GitHub Repository</a></p>
-            <div class="mt-4">
-              <h4>Project Structure:</h4>
-              <ul>
-                <li><strong>README</strong>: Overview of the project and setup instructions.</li>
-                <li><strong>Code</strong>: Implementation of homomorphic encryption in CNN models.</li>
-                <li><strong>Notebooks</strong>: Colab notebooks for interactive testing and experimentation.</li>
-                <li><strong>Research Paper</strong>: A detailed paper describing the encryption methods used in CNNs.</li>
-              </ul>
+                    <div class="pipeline-line"></div>
+                    <div class="progress-line" id="progressLine"></div>
+                </div>
             </div>
-          </div>
 
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalTime">6.3s</div>
+                    <div class="stat-label">Total Processing Time</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-value">16,384</div>
+                    <div class="stat-label">Encryption Poly Modulus Degree</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-value">2^40</div>
+                    <div class="stat-label">Global Scale Factor</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-value">CKKS</div>
+                    <div class="stat-label">Encryption Scheme</div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <h3>Understanding Homomorphic Encryption</h3>
+                <p>Homomorphic Encryption allows computations to be performed on encrypted data without decrypting it first. This means your sensitive medical data remains private throughout the entire analysis process.</p>
+                <p>Our system uses the CKKS scheme which allows for approximate arithmetic operations on encrypted real numbers.</p>
+            </div>
+
+            <div class="btn-group">
+                <a href="/upload" class="btn btn-outline">Back to Upload</a>
+                <a href="/result" class="btn">View Results</a>
+            </div>
         </div>
-
-      </div>
-
-    </section><!-- /Research Section -->
-
-    <!-- CKKS Encryption Section -->
-    <section id="ckks" class="research section">
-      <div class="container position-relative" data-aos="fade-up" data-aos-delay="100">
-        <h2>CKKS Encryption in Encrypted CNN</h2>
-        <p>The CKKS (Cheon-Kim-Kim-Song) scheme is a leveled homomorphic encryption scheme that supports approximate arithmetic on encrypted data. It allows the encryption of real-valued data, making it an ideal fit for machine learning tasks such as training neural networks on encrypted data. CKKS allows operations such as addition, multiplication, and rotation on encrypted data, with the ability to support multiple levels of precision, which is crucial for applications in privacy-preserving machine learning.</p>
-
-        <p>In our project, CKKS encryption is leveraged to train Convolutional Neural Networks (CNNs) on encrypted data without decrypting it. The main challenge in encrypted machine learning is that the encrypted data is represented as ciphertext, which can only be manipulated through specific homomorphic operations. The CKKS scheme allows CNNs to perform convolutions, activations, and pooling operations while keeping the data encrypted, ensuring privacy and security throughout the training process.</p>
-
-        <h3>Training Methodology</h3>
-        <p>The training methodology for our Encrypted CNN leverages the CKKS scheme to securely process and train on encrypted datasets. The entire training pipeline is designed to operate within the encrypted domain, ensuring that sensitive data never needs to be decrypted. Below is an overview of our training methodology:</p>
-
-        <ul>
-          <li><strong>Data Encryption:</strong> The training data is first encrypted using CKKS encryption before being fed into the CNN model. This ensures that sensitive information, such as images or other personal data, remains confidential.</li>
-          <li><strong>Forward Propagation:</strong> During the forward pass, each layer of the CNN performs operations such as convolution and activation on the encrypted data. The CKKS scheme supports approximate computations, which is essential for maintaining the accuracy of the network while preserving privacy.</li>
-          <li><strong>Backpropagation:</strong> The backpropagation process updates the model parameters (weights) using the encrypted gradients, enabling the model to learn from the encrypted data without exposing it.</li>
-          <li><strong>Decryption:</strong> After training, the final model can be decrypted to extract the learned parameters, but the training data itself remains encrypted throughout the process.</li>
-        </ul>
-
-      </div>
-    </section><!-- /CKKS Encryption Section -->
-
-  </main>
-
-  <!-- Footer -->
-  <footer id="footer" class="footer">
-    <div class="footer-top">
-      <div class="container">
-        <div class="row gy-4">
-          <div class="col-lg-4 footer-contact">
-            <h4>Contact Us</h4>
-            <p>For further inquiries, reach out to us:</p>
-            <p>Email: <strong>support@encryptedcnn.com</strong></p>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <div class="footer-bottom">
-      <div class="container text-center">
-        <p>&copy; 2024 Encrypted CNN. All Rights Reserved.</p>
-      </div>
-    </div>
-  </footer><!-- /Footer -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Animate the pipeline steps
+            function animatePipeline() {
+                const steps = document.querySelectorAll('.pipeline-step');
+                const progressLine = document.getElementById('progressLine');
+                const totalSteps = steps.length;
 
-  <!-- Vendor JS Files -->
-  <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/aos/aos.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/glightbox/js/glightbox.min.js') }}"></script>
-  <script src="{{ url_for('static', filename='vendor/swiper/swiper-bundle.min.js') }}"></script>
+                let currentStep = 0;
+                const stepDurations = [200, 500, 1200, 3800, 600]; // Duration in ms for each step
 
-  <!-- Main JS File -->
-  <script src="{{ url_for('static', filename='main.js') }}"></script>
+                // Start animation for first step
+                startStepAnimation();
 
+                function startStepAnimation() {
+                    if (currentStep >= totalSteps) return;
+
+                    // Activate current step
+                    steps[currentStep].classList.add('active');
+
+                    // Calculate progress percentage for the line
+                    const progress = ((currentStep + 1) / totalSteps) * 100;
+
+                    // Mobile or desktop view
+                    if (window.innerWidth <= 768) {
+                        progressLine.style.height = `${progress}%`;
+                    } else {
+                        progressLine.style.width = `${progress}%`;
+                    }
+
+                    // Wait for the step duration, then mark as completed
+                    setTimeout(() => {
+                        steps[currentStep].classList.remove('active');
+                        steps[currentStep].classList.add('completed');
+
+                        // Move to next step
+                        currentStep++;
+                        if (currentStep < totalSteps) {
+                            startStepAnimation();
+                        }
+                    }, stepDurations[currentStep]);
+                }
+            }
+
+            // Animate elements when they come into view
+            function animateOnScroll() {
+                const elements = document.querySelectorAll('.fade-in');
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            entry.target.style.opacity = 1;
+                            entry.target.style.transform = 'translateY(0)';
+                            observer.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.1 });
+
+                elements.forEach(el => {
+                    observer.observe(el);
+                });
+            }
+
+            // Start animations
+            setTimeout(animatePipeline, 500);
+            animateOnScroll();
+
+            // Add fade-in class to elements for scroll animation
+            document.querySelectorAll('.card, .stat-card, .info-box').forEach(el => {
+                el.classList.add('fade-in');
+                el.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            });
+
+            // Calculate and update total time
+            function updateTotalTime() {
+                const stepTimes = [0.2, 0.5, 1.2, 3.8, 0.6]; // Times from the step-time spans
+                const totalTime = stepTimes.reduce((a, b) => a + b, 0);
+                document.getElementById('totalTime').textContent = totalTime.toFixed(1) + 's';
+            }
+
+            updateTotalTime();
+
+            // Handle window resize for the progress line
+            window.addEventListener('resize', function() {
+                const progressLine = document.getElementById('progressLine');
+                // Reset progress line
+                if (window.innerWidth <= 768) {
+                    progressLine.style.width = '4px';
+                    progressLine.style.height = '0';
+                } else {
+                    progressLine.style.height = '4px';
+                    progressLine.style.width = '0';
+                }
+
+                // Restart animation
+                setTimeout(animatePipeline, 300);
+            });
+        });
+    </script>
 </body>
-
 </html>

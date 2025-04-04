@@ -12,7 +12,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             background: linear-gradient(135deg, #6a11cb, #2575fc);
             color: #2c3e50;
         }
@@ -22,7 +22,9 @@
             box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
             padding: 40px 50px;
             text-align: center;
-            width: 400px;
+            width: 90%;
+            max-width: 600px;
+            margin: 30px 0;
             animation: fadeIn 0.6s ease-in-out;
         }
         .result-title {
@@ -35,13 +37,66 @@
         .result-box {
             font-size: 1.6em;
             font-weight: 600;
-            color: #27ae60;
             margin: 30px 0;
             padding: 20px;
-            border: 2px solid #27ae60;
             border-radius: 12px;
-            background-color: #e8f5e9;
             animation: slideUp 0.6s ease-in-out;
+        }
+        .positive-result {
+            color: #e74c3c;
+            border: 2px solid #e74c3c;
+            background-color: #fdedeb;
+        }
+        .negative-result {
+            color: #27ae60;
+            border: 2px solid #27ae60;
+            background-color: #e8f5e9;
+        }
+        .disclaimer {
+            background-color: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 8px;
+            animation: slideUp 0.8s ease-in-out;
+        }
+        .disclaimer h3 {
+            color: #856404;
+            margin-top: 0;
+        }
+        .info-card {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 8px;
+            animation: slideUp 1s ease-in-out;
+        }
+        .info-card h3 {
+            color: #0d47a1;
+            margin-top: 0;
+        }
+        .info-card ul {
+            text-align: left;
+            padding-left: 20px;
+        }
+        .info-card li {
+            margin-bottom: 8px;
+        }
+        .next-steps {
+            background-color: #e8f5e9;
+            border-left: 4px solid #4caf50;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: left;
+            border-radius: 8px;
+            animation: slideUp 1.2s ease-in-out;
+        }
+        .next-steps h3 {
+            color: #2e7d32;
+            margin-top: 0;
         }
         .back-button {
             display: inline-block;
@@ -54,6 +109,7 @@
             font-weight: 500;
             transition: background-color 0.3s ease, transform 0.2s ease;
             box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+            margin-top: 20px;
         }
         .back-button:hover {
             background-color: #0056b3;
@@ -63,6 +119,9 @@
         .back-button:active {
             transform: translateY(0);
             box-shadow: 0 4px 6px rgba(0, 123, 255, 0.2);
+        }
+        .hidden {
+            display: none;
         }
 
         /* Animations */
@@ -82,8 +141,71 @@
 <body>
     <div class="result-container">
         <div class="result-title">Prediction Result</div>
-        <div class="result-box">{{ output }}</div>
+        <div id="resultBox" class="result-box">{{ output }}</div>
+        <!-- Disclaimer (shown for all results) -->
+        <div id="disclaimer" class="disclaimer">
+            <h3>Important Notice</h3>
+            <p>This prediction is based on an automated algorithm and is not 100% accurate. Always consult with a qualified healthcare professional for proper diagnosis and treatment.</p>
+        </div>
+
+        <!-- Pneumonia Information (initially hidden) -->
+        <div id="pneumoniaInfo" class="info-card hidden">
+            <h3>About Pneumonia</h3>
+            <p>Pneumonia is an infection that inflames the air sacs in one or both lungs. The air sacs may fill with fluid or pus, causing symptoms such as:</p>
+            <ul>
+                <li>Chest pain when breathing or coughing</li>
+                <li>Shortness of breath</li>
+                <li>Fatigue and fever</li>
+                <li>Cough, which may produce phlegm</li>
+            </ul>
+            <p>Pneumonia can range in severity from mild to life-threatening and is particularly serious for infants, young children, people over 65, and those with underlying health conditions.</p>
+        </div>
+
+        <!-- Next Steps (initially hidden) -->
+        <div id="nextSteps" class="next-steps hidden">
+            <h3>Recommended Next Steps</h3>
+            <ul id="stepsContent">
+                <li>Schedule an appointment with your healthcare provider as soon as possible</li>
+                <li>Bring these test results to your appointment</li>
+                <li>Prepare a list of any symptoms you've been experiencing</li>
+                <li>Don't make any changes to your current medications without consulting your doctor</li>
+            </ul>
+        </div>
+
         <a href="/" class="back-button">Go Back</a>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const result = document.getElementById('resultBox').textContent.trim();
+            const pneumoniaInfo = document.getElementById('pneumoniaInfo');
+            const nextSteps = document.getElementById('nextSteps');
+            const resultBox = document.getElementById('resultBox');
+
+            // Check result and display appropriate information
+            if (result.toLowerCase().includes('pneumonia detected')) {
+                resultBox.classList.add('positive-result');
+                pneumoniaInfo.classList.remove('hidden');
+                nextSteps.classList.remove('hidden');
+
+                // Add pneumonia-specific steps
+                document.getElementById('stepsContent').innerHTML += `
+                    <li>Consider getting a chest X-ray if not already done</li>
+                    <li>Rest and stay hydrated while awaiting medical consultation</li>
+                `;
+            } else {
+                resultBox.classList.add('negative-result');
+
+                // Still show next steps for negative results
+                nextSteps.classList.remove('hidden');
+                document.getElementById('stepsContent').innerHTML = `
+                    <li>Even with a negative result, consult with your doctor if you're experiencing symptoms</li>
+                    <li>Consider follow-up testing if symptoms persist</li>
+                    <li>Maintain your regular check-up schedule</li>
+                    <li>Practice preventive health measures</li>
+                `;
+            }
+        });
+    </script>
 </body>
 </html>
