@@ -1,54 +1,47 @@
 import os
-import shutil
 import time
 import numpy as np
 import gc
-from flask import Flask, Blueprint, request, redirect, render_template
+from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
 from werkzeug.utils import secure_filename
 import tenseal as ts
 import torch
 import torch.nn as nn
 from torchvision import transforms
 from PIL import Image
+import io
 
-# Flask app setup
-UPLOAD_FOLDER = os.path.abspath('static/uploads')
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
-
-app = Flask(__name__)
+# Create a Blueprint for the upload2 functionality
 upload2_bp = Blueprint('upload2', __name__)
 
-# Ensure the upload folder exists
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+# Flask app setup
+UPLOAD2_FOLDER = os.path.abspath('static/upload2s')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
+
+# Ensure the upload2 folder exists
+os.makedirs(UPLOAD2_FOLDER, exist_ok=True)
+
+# Global state to track progress
+upload2_bp.config = {
+    'UPLOAD2_FOLDER': UPLOAD2_FOLDER,
+    'IMAGE_UPLOAD2ED': False,
+    'KEYS_GENERATED': False,
+    'IMAGE_ENCRYPTED': False,
+    'INFERENCE_DONE': False
+}
 
 
+# Alzheimer's Model Definition
 class HECNN(nn.Module):
-    """
-    Homomorphic Encryption-compatible CNN model with Chebyshev approximation of ReLU activation.
-    """
-
     def __init__(self):
         super(HECNN, self).__init__()
-        self.fc1 = nn.Linear(8112, 64)  # Input size adjusted for 52x52 RGB images
-        self.fc2 = nn.Linear(64, 1)
-
-    def chebyshev_activation(self, x):
-        """
-        Chebyshev approximation of ReLU: f(x) = c0 + c1*x + c2*x^2 + c3*x^3 + c4*x^4 + c5*x^5
-        Coefficients: [0.5, 0.25, -0.0208333, 0.00260417, -0.000434028, 0.0000826823]
-        """
-        coeffs = [0.5, 0.25, -0.0208333, 0.00260417, -0.000434028, 0.0000826823]
-        result = coeffs[0]
-        x_power = x.clone()  # Avoid inplace modification
-        for coeff in coeffs[1:]:
-            result += coeff * x_power
-            x_power = x_power * x  # Avoid inplace operation
-        return result
+        self.fc1 = nn.Linear(784, 32)
+        self.fc2 = nn.Linear(32, 4)  # 4 output classes for Alzheimer's
+        self.activation = lambda x: x.pow(2)  # Square activation
 
     def forward(self, x):
-        x = x.view(x.size(0), -1)  # Flatten the input
         x = self.fc1(x)
-        x = self.chebyshev_activation(x)  # Use Chebyshev activation
+        x = self.activation(x)
         x = self.fc2(x)
         return x
 
@@ -58,6 +51,7 @@ def allowed_file(filename):
 
 
 def safe_clear_folder(folder):
+    """Clear all files in the specified folder."""
     for filename in os.listdir(folder):
         file_path = os.path.join(folder, filename)
         max_attempts = 3
@@ -65,7 +59,6 @@ def safe_clear_folder(folder):
         while attempt < max_attempts:
             try:
                 if os.path.isfile(file_path):
-                    # Close any open file handles
                     gc.collect()
                     os.close(os.open(file_path, os.O_RDONLY))
                     os.remove(file_path)
@@ -73,77 +66,74 @@ def safe_clear_folder(folder):
             except Exception as e:
                 print(f"Attempt {attempt + 1}: Error deleting file {file_path}: {e}")
                 attempt += 1
-                time.sleep(0.1)  # Wait briefly before retrying
+                time.sleep(0.1)
 
 
 class HEImagePipeline:
-    """
-    Pipeline for training, encrypting, and performing inference on images.
-    """
-
     def __init__(self):
         self.model = HECNN()
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model.to(self.device)
         self.load_model()
-        self.context = self.generate_keys()
+        self.context = None
+        self.class_names = ['Mild Impairment', 'Moderate Impairment', 'No Impairment', 'Very Mild Impairment']
 
     def load_model(self):
-        """Load the pre-trained model."""
-        model_path = "models/rgbmodelnew2.pth"
+        model_path = "models/mri (3).pth"  # Updated model path
         if os.path.exists(model_path):
             self.model.load_state_dict(torch.load(model_path, map_location=self.device))
             self.model.eval()
-            print("Model loaded successfully from models/ directory.")
+            print("Alzheimer's model loaded successfully")
         else:
-            print("Model file not found in models/ directory!")
+            print("Alzheimer's model file not found!")
 
     def generate_keys(self):
-        """Generate encryption keys for the CKKS scheme."""
-        params = {
-            "scheme": ts.SCHEME_TYPE.CKKS,
-            "poly_modulus_degree": 16384,
-            "coeff_mod_bit_sizes": [60, 40, 40, 40, 40, 40, 40, 60],
-        }
-        context = ts.context(**params)
-        context.global_scale = 2**40
-        context.generate_galois_keys()
-        return context
+        try:
+            params = {
+                "scheme": ts.SCHEME_TYPE.CKKS,
+                "poly_modulus_degree": 16384,
+                "coeff_mod_bit_sizes": [60, 40, 40, 40, 40, 40, 40, 60]
+            }
+            context = ts.context(**params)
+            context.global_scale = 2 ** 40
+            context.generate_galois_keys()
+            self.context = context
+            return context
+        except Exception as e:
+            print(f"Error generating keys: {str(e)}")
+            return None
 
     def preprocess_image(self, image):
-        """Preprocess the image for inference."""
         transform = transforms.Compose([
-            transforms.Resize((52, 52)),  # Resize to 52x52
-            transforms.ToTensor(),  # Convert to tensor
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])  # Normalize
+            transforms.Resize((28, 28)),
+            transforms.Grayscale(),
+            transforms.ToTensor(),
+            transforms.Normalize((0.5,), (0.5,))
         ])
-        image = transform(image).unsqueeze(0)  # Add batch dimension
+        image = transform(image)
+        image = image.view(-1).cpu().numpy()
         return image
 
     def encrypt_data(self, data):
-        """Encrypt input data."""
         try:
             data_normalized = data / np.max(np.abs(data))
-            data_flattened = data_normalized.flatten()
-            encrypted_data = ts.ckks_vector(self.context, data_flattened.tolist())
+            encrypted_data = ts.ckks_vector(self.context, data_normalized.tolist())
             return encrypted_data
         except Exception as e:
             print(f"Error encrypting data: {str(e)}")
             raise
 
     def save_encrypted_data(self, encrypted_data, file_path):
-        """Save encrypted data to a file."""
         try:
-            with open(file_path, "wb") as f:
+            with open(file_path, 'wb') as f:
                 f.write(encrypted_data.serialize())
         except Exception as e:
             print(f"Error saving encrypted data: {str(e)}")
             raise
 
     def load_encrypted_data(self, file_path):
-        """Load encrypted data from a file."""
         try:
-            with open(file_path, "rb") as f:
+            with open(file_path, 'rb') as f:
                 serialized_data = f.read()
             return ts.ckks_vector_from(self.context, serialized_data)
         except Exception as e:
@@ -151,33 +141,36 @@ class HEImagePipeline:
             raise
 
     def encrypted_inference(self, encrypted_data):
-        """Perform inference on encrypted data."""
         try:
-            # Extract model weights and biases
+            start_time = time.time()
+
+            # Get model parameters
             fc1_weight = self.model.fc1.weight.data.cpu().numpy()
             fc1_bias = self.model.fc1.bias.data.cpu().numpy()
             fc2_weight = self.model.fc2.weight.data.cpu().numpy()
             fc2_bias = self.model.fc2.bias.data.cpu().numpy()
 
-            # Layer 1: fc1
+            # Layer 1
             encrypted_output = encrypted_data.mm(fc1_weight.T) + fc1_bias
+            encrypted_output = encrypted_output.square()  # x² activation
 
-            # Apply Chebyshev approximation of ReLU
-            encrypted_output = encrypted_output.polyval([0.5, 0.25, -0.0208333, 0.00260417, -0.000434028, 0.0000826823])
-
-            # Layer 2: fc2
+            # Layer 2
             encrypted_output = encrypted_output.mm(fc2_weight.T) + fc2_bias
 
-            return encrypted_output
+            end_time = time.time()
+            inference_time = end_time - start_time
+            print(f"Encrypted inference completed in {inference_time:.4f} seconds")
+
+            return encrypted_output, inference_time
         except Exception as e:
             print(f"Error during encrypted inference: {str(e)}")
             raise
 
     def decrypt_result(self, encrypted_result):
-        """Decrypt the result of encrypted inference."""
         try:
-            decrypted_result = encrypted_result.decrypt()
-            return decrypted_result
+            decrypted = encrypted_result.decrypt()
+            probabilities = torch.softmax(torch.tensor(decrypted), dim=0)
+            return probabilities.numpy()
         except Exception as e:
             print(f"Error decrypting result: {str(e)}")
             raise
@@ -187,56 +180,98 @@ class HEImagePipeline:
 pipeline = HEImagePipeline()
 
 
-@upload2_bp.route('/upload2', methods=['GET', 'POST'])
-def upload_image():
+@upload2_bp.route('/upload2', methods=['POST'])
+def upload2_image():
     if request.method == 'POST':
         file = request.files.get('image')
         if not file or file.filename == '' or not allowed_file(file.filename):
-            return redirect(request.url)
+            return jsonify({'success': False, 'error': 'No file selected or file type not allowed'}), 400
 
         try:
-            # Clear folder before saving new file
-            safe_clear_folder(UPLOAD_FOLDER)
+            safe_clear_folder(upload2_bp.config['UPLOAD2_FOLDER'])
 
-            # Process the image in memory
-            with Image.open(file.stream) as img:
-                img.verify()  # Verify the file is intact
-                img = Image.open(file.stream).convert('RGB')  # Convert to RGB
+            # Generate keys
+            pipeline.generate_keys()
+            if pipeline.context is None:
+                return jsonify({'success': False, 'error': 'Failed to generate encryption keys'}), 500
 
-                # Preprocess the image
-                preprocessed_image = pipeline.preprocess_image(img)
+            # Process image
+            image = Image.open(file.stream).convert('L')
+            preprocessed_image = pipeline.preprocess_image(image)
+            encrypted_image = pipeline.encrypt_data(preprocessed_image)
 
-                # Encrypt the preprocessed image
-                encrypted_image = pipeline.encrypt_data(preprocessed_image.numpy())
+            # Save encrypted image
+            encrypted_file_path = os.path.join(upload2_bp.config['UPLOAD2_FOLDER'], "encrypted_image.enc")
+            pipeline.save_encrypted_data(encrypted_image, encrypted_file_path)
 
-                # Save the encrypted image
-                filename = secure_filename(file.filename)
-                encrypted_file_path = os.path.join(UPLOAD_FOLDER, f"{filename}.enc")
-                pipeline.save_encrypted_data(encrypted_image, encrypted_file_path)
+            upload2_bp.config.update({
+                'IMAGE_UPLOAD2ED': True,
+                'KEYS_GENERATED': True,
+                'IMAGE_ENCRYPTED': True
+            })
 
-                # Perform inference on the encrypted image
-                loaded_encrypted_image = pipeline.load_encrypted_data(encrypted_file_path)
-                encrypted_result = pipeline.encrypted_inference(loaded_encrypted_image)
-                decrypted_result = pipeline.decrypt_result(encrypted_result)
-
-                # Get prediction and confidence level
-                prediction = "Congrats, You're Healthy" if decrypted_result[0] > 0.05 else "CANCER"
-                confidence_level = abs(decrypted_result[0])  # Confidence is the absolute value of the result
-
-                # Debugging: Print confidence level to terminal
-                print(f"Debug: Confidence Level = {confidence_level:.2f}")
-
-                return render_template('result.html',
-                                      output=f"Predicted class: {prediction}",
-                                      confidence=f"Confidence: {confidence_level:.2f}")
+            return jsonify({'success': True, 'message': 'Image upload2ed and encrypted successfully'})
 
         except Exception as e:
-            print(f"Error processing image: {e}")
-            return render_template('result.html', output=f"Error during file processing: {str(e)}")
+            return jsonify({'success': False, 'error': str(e)}), 500
 
-    return render_template('index.html')
+    return jsonify({'success': False, 'error': 'Invalid request method'}), 400
 
 
-if __name__ == '__main__':
-    app.register_blueprint(upload2_bp)
-    app.run(debug=True)
+@upload2_bp.route('/inference', methods=['POST'])
+def inference():
+    try:
+        encrypted_file_path = os.path.join(upload2_bp.config['UPLOAD2_FOLDER'], "encrypted_image.enc")
+        encrypted_image = pipeline.load_encrypted_data(encrypted_file_path)
+
+        encrypted_result, inference_time = pipeline.encrypted_inference(encrypted_image)
+
+        result_file_path = os.path.join(upload2_bp.config['UPLOAD2_FOLDER'], "encrypted_result.enc")
+        pipeline.save_encrypted_data(encrypted_result, result_file_path)
+
+        upload2_bp.config['INFERENCE_DONE'] = True
+
+        return jsonify({
+            'success': True,
+            'message': 'Inference completed successfully',
+            'inference_time': f"{inference_time:.4f}"
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@upload2_bp.route('/decrypt', methods=['POST'])
+def decrypt():
+    try:
+        result_file_path = os.path.join(upload2_bp.config['UPLOAD2_FOLDER'], "encrypted_result.enc")
+        encrypted_result = pipeline.load_encrypted_data(result_file_path)
+
+        probabilities = pipeline.decrypt_result(encrypted_result)
+        predicted_class = np.argmax(probabilities)
+
+        return jsonify({
+            'success': True,
+            'prediction': pipeline.class_names[predicted_class],
+            'confidence': f"{probabilities[predicted_class] * 100:.2f}%",
+            'probabilities': {name: float(prob) for name, prob in zip(pipeline.class_names, probabilities)}
+        })
+
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@upload2_bp.route('/result')
+def result():
+    prediction = request.args.get('prediction', 'No prediction available')
+    confidence = request.args.get('confidence', 'No confidence score available')
+    return render_template('result.html',
+                           output=f"{prediction} ({confidence})",
+                           class_names=pipeline.class_names,
+                           probabilities=request.args.get('probabilities', {}))

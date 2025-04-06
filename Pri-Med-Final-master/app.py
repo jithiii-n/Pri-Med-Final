@@ -1,11 +1,13 @@
 from flask import Flask, render_template
-from upload import upload_bp,  HECNN # Import the model and loader function
-#from upload2 import upload2_bp, HECNN
-#from upload import pipeline_bp
+from upload import upload_bp
+from upload2 import upload2_bp
+
 app = Flask(__name__)
+
+# Register blueprints with proper URL prefixes
 app.register_blueprint(upload_bp, url_prefix='/upload')
-#app.register_blueprint(upload2_bp, url_prefix='/upload2')
-#app.register_blueprint(pipeline_bp, url_prefix='/pipeline')
+app.register_blueprint(upload2_bp, url_prefix='/upload2')
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -20,11 +22,14 @@ def contact():
 
 @app.route('/upload/<type>')
 def upload_page(type):
-    return render_template('upload.html', analysis_type=type)
+    # Validate the type parameter
+    if type not in ['chest', 'alzheimer']:
+        return "Invalid analysis type", 400
+    return render_template('upload.html', type=type)
 
-
-@app.route('/pipeline', methods=['GET'])
+@app.route('/pipeline')
 def pipeline_visualization():
     return render_template('contact.html')
+
 if __name__ == '__main__':
     app.run(debug=True)

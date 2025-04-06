@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>Pri-Med - Futuristic Image Analysis</title>
+    <title>Pri-Med - Upload Image</title>
     <meta name="description" content="Private Medical Image Analysis Platform">
     <meta name="keywords" content="medical, private, analysis, AI">
 
@@ -22,16 +22,17 @@
     <link href="{{ url_for('static', filename='vendor/aos/aos.css') }}" rel="stylesheet">
 
     <style>
-        /* Your existing CSS styles */
         :root {
-            --primary-color: #00ff88;
-            --secondary-color: #6a11cb; /* Updated to a futuristic purple */
-            --accent-color: #ff4081;
+            --primary-color: #2a7f62;
+            --secondary-color: #3a506b;
+            --accent-color: #5bc0be;
             --background-color: #0a192f;
             --text-color: #ffffff;
             --card-bg: rgba(255, 255, 255, 0.1);
             --card-border: rgba(255, 255, 255, 0.2);
             --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            --action-card-bg: rgba(255, 255, 255, 0.08);
+            --action-card-border: rgba(255, 255, 255, 0.15);
         }
 
         body {
@@ -44,8 +45,8 @@
         }
 
         .header {
-            background: rgba(10, 25, 47, 0.9);
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            background: rgba(10, 25, 47, 0.98);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
             padding: 15px 0;
             position: fixed;
             width: 100%;
@@ -53,10 +54,11 @@
         }
 
         .sitename {
-            color: var(--primary-color);
+            color: var(--accent-color);
             font-family: 'Orbitron', sans-serif;
-            font-weight: 700;
+            font-weight: 600;
             font-size: 24px;
+            letter-spacing: 1px;
             margin: 0;
         }
 
@@ -72,18 +74,19 @@
         }
 
         .navmenu ul li a {
-            color: var(--text-color);
+            color: white;
             text-decoration: none;
             font-weight: 500;
+            font-size: 15px;
             transition: color 0.3s;
         }
 
         .navmenu ul li a:hover {
-            color: var(--primary-color);
+            color: var(--accent-color);
         }
 
         .hero {
-            background: linear-gradient(135deg, rgba(10, 25, 47, 0.9), rgba(0, 0, 0, 0.9)),
+            background: linear-gradient(135deg, rgba(10, 25, 47, 0.95), rgba(0, 0, 0, 0.95)),
                         url('{{ url_for('static', filename='img/background.jpeg') }}');
             background-size: cover;
             background-position: center;
@@ -97,7 +100,7 @@
 
         .upload-container {
             background: var(--card-bg);
-            border-radius: 20px;
+            border-radius: 12px;
             padding: 40px;
             box-shadow: var(--card-shadow);
             border: 1px solid var(--card-border);
@@ -111,7 +114,7 @@
             display: block;
             padding: 30px;
             border: 2px dashed var(--primary-color);
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s;
             background: rgba(255, 255, 255, 0.05);
@@ -133,14 +136,15 @@
         }
 
         .btn-primary {
-            background: var(--secondary-color); /* Updated button color */
+            background: var(--secondary-color);
             border: none;
-            padding: 8px 20px; /* Smaller buttons */
-            border-radius: 25px;
+            padding: 12px 28px;
+            border-radius: 6px;
             font-weight: 600;
-            font-size: 14px; /* Smaller font size */
+            font-size: 15px;
             transition: all 0.3s;
             color: var(--text-color);
+            letter-spacing: 0.5px;
         }
 
         .btn-primary:hover {
@@ -156,7 +160,7 @@
             transform: translate(-50%, -50%);
             background: var(--card-bg);
             padding: 40px;
-            border-radius: 20px;
+            border-radius: 12px;
             box-shadow: var(--card-shadow);
             border: 1px solid var(--card-border);
             z-index: 1000;
@@ -182,84 +186,67 @@
             font-weight: 500;
         }
 
+        .analysis-type {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+            font-size: 24px;
+            letter-spacing: 0.5px;
+        }
+
         .dynamic-cards {
             display: none;
             padding: 60px 20px;
             background: var(--background-color);
         }
 
-        .card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px; /* Smaller padding */
-            box-shadow: var(--card-shadow);
-            border: 1px solid var(--card-border);
+        .action-card {
+            background: var(--action-card-bg);
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border: 1px solid var(--action-card-border);
             margin-bottom: 20px;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(8px);
             transition: transform 0.3s, box-shadow 0.3s;
         }
 
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+        .action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
         }
 
-        .card h3 {
+        .action-card h3 {
             color: var(--primary-color);
             font-family: 'Orbitron', sans-serif;
-            font-size: 20px; /* Smaller font size */
-            margin-bottom: 15px;
+            font-size: 18px;
+            margin-bottom: 12px;
+            letter-spacing: 0.5px;
         }
 
-        .card p {
-            color: var(--text-color);
-            font-size: 14px; /* Smaller font size */
+        .action-card p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
             line-height: 1.6;
+            margin-bottom: 20px;
         }
 
-        .card button {
-            margin-top: 15px; /* Smaller margin */
+        .action-card button {
+            margin-top: 0;
+            width: 100%;
         }
 
-        .card button:disabled {
-            background: var(--secondary-color);
+        .action-card button:disabled {
+            opacity: 0.7;
             cursor: not-allowed;
         }
 
-        .flash-card {
-            background: var(--card-bg);
-            border-radius: 20px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: center;
-            box-shadow: var(--card-shadow);
-            border: 1px solid var(--card-border);
-            backdrop-filter: blur(10px);
-        }
-
-        .flash-card h3 {
-            color: var(--primary-color);
-            font-family: 'Orbitron', sans-serif;
-            font-size: 20px;
-            margin-bottom: 15px;
-        }
-
-        .flash-card p {
-            color: var(--text-color);
-            font-size: 14px;
-        }
-
-        /* Lightning Animation */
-        @keyframes lightning {
-            0% { opacity: 0; }
-            50% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-
-        .lightning {
-            font-size: 48px;
-            color: var(--primary-color);
-            animation: lightning 0.5s infinite;
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 600px;
+            margin: 0 auto;
         }
     </style>
 </head>
@@ -268,14 +255,14 @@
     <header id="header" class="header fixed-top">
         <div class="container-fluid container-xl d-flex align-items-center justify-content-between">
             <a href="{{ url_for('index') }}" class="logo d-flex align-items-center">
-                <h1 class="sitename">Pri-Med</h1>
+                <h1 class="sitename">PRI-MED</h1>
             </a>
 
             <nav id="navmenu" class="navmenu">
                 <ul>
-                    <li><a href="{{ url_for('index') }}" class="active">Home</a></li>
+                    <li><a href="{{ url_for('index') }}">Home</a></li>
                     <li><a href="{{ url_for('about') }}">Dashboard</a></li>
-                    <li><a href="{{ url_for('contact') }}">Research Work</a></li>
+                    <li><a href="{{ url_for('contact') }}">Research</a></li>
                 </ul>
             </nav>
         </div>
@@ -283,96 +270,48 @@
 
     <main class="main">
         <section id="hero" class="hero">
-            <div class="container section-title" data-aos="fade-up">
-                <h2>Secure Medical Image Analysis</h2>
-                <p>Select the type of analysis you need</p>
-            </div>
-
-            <div class="container">
-                <div class="options-container" data-aos="fade-up" data-aos-delay="200">
-                    <div class="row justify-content-center">
-                        <div class="col-md-4 mb-4">
-                            <a href="#" class="option-card" data-type="chest">
-                                <div class="card text-center">
-                                    <div class="card-body">
-                                        <i class="bi bi-lungs-fill icon-large"></i>
-                                        <h3>Chest Xray Analysis</h3>
-                                        <p>Upload chest X-rays for analysis</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <a href="#" class="option-card" data-type="oral">
-                                <div class="card text-center">
-                                    <div class="card-body">
-                                        <i class="bi bi-tooth-fill icon-large"></i>
-                                        <h3>Oral Cancer Analysis</h3>
-                                        <p>Upload oral images for analysis</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                        <div class="col-md-4 mb-4">
-                            <a href="#" class="option-card" data-type="breast">
-                                <div class="card text-center">
-                                    <div class="card-body">
-                                        <i class="bi bi-heart-pulse-fill icon-large"></i>
-                                        <h3>Breast Cancer Analysis</h3>
-                                        <p>Upload breast images for analysis</p>
-                                    </div>
-                                </div>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Upload Section -->
-        <section id="uploadSection" class="hero" style="display: none;">
             <div class="upload-container" data-aos="fade-up">
+                <div class="analysis-type">
+                    {% if type == 'chest' %}
+                        <i class="bi bi-lungs-fill"></i> Chest X-ray Analysis
+                    {% elif type == 'alzheimer' %}
+                        <i class="bi bi-brain"></i> Alzheimer's MRI Analysis
+                    {% endif %}
+                </div>
                 <form id="uploadForm" method="post" enctype="multipart/form-data">
-                    <input type="hidden" id="analysisType" name="type">
+                    <input type="hidden" name="type" value="{{ type }}">
                     <label for="imageUpload" class="upload-label">
                         <i class="bi bi-cloud-upload"></i>
-                        <h3>Drop your image here</h3>
-                        <p>or click to browse</p>
+                        <h3>Upload Medical Image</h3>
+                        <p>Supported formats: PNG, JPG, JPEG</p>
                     </label>
                     <input type="file" id="imageUpload" name="image" accept="image/*" required>
-                    <button type="submit" id="uploadButton" class="btn btn-primary mt-3">
-                        <i class="bi bi-shield-check me-2"></i> Upload Image
+                    <button type="submit" class="btn btn-primary mt-3">
+                        <i class="bi bi-shield-check me-2"></i> Secure Upload
                     </button>
                 </form>
             </div>
         </section>
 
-        <!-- Dynamic Cards Section -->
+        <!-- Action Cards Section -->
         <section id="dynamicCards" class="dynamic-cards">
-            <div class="container">
-                <div class="card" id="inferenceCard">
-                    <h3>Perform Inference</h3>
-                    <p>Run AI inference on the encrypted image.</p>
-                    <button class="btn btn-primary" id="inferenceButton">
-                        <i class="bi bi-cpu me-2"></i> Perform Inference
+            <div class="action-grid">
+                <div class="action-card" id="inferenceCard">
+                    <h3>Perform Analysis</h3>
+                    <p>Run confidential AI processing on your encrypted medical image</p>
+                    <button class="btn btn-primary" id="inferenceButton" disabled>
+                        <i class="bi bi-cpu me-2"></i> Start Analysis
                     </button>
                 </div>
-                <div class="card" id="decryptCard">
-                    <h3>Decrypt Result</h3>
-                    <p>Decrypt the inference results for analysis.</p>
-                    <button class="btn btn-primary" id="decryptButton">
-                        <i class="bi bi-unlock me-2"></i> Decrypt Result
+                <div class="action-card" id="decryptCard">
+                    <h3>View Results</h3>
+                    <p>Securely decrypt and view your diagnostic results</p>
+                    <button class="btn btn-primary" id="decryptButton" disabled>
+                        <i class="bi bi-unlock me-2"></i> Retrieve Results
                     </button>
                 </div>
             </div>
         </section>
-
-        <!-- Flash Card for Inference Progress -->
-        <div id="inferenceProgressCard" class="flash-card hidden">
-            <h3>Inference Progress</h3>
-            <p id="inferenceProgress"></p>
-            <div class="lightning">⚡</div>
-        </div>
     </main>
 
     <!-- Loading Card -->
@@ -381,157 +320,138 @@
         <p>Processing... Please wait.</p>
     </div>
 
+    <!-- Vendor JS Files -->
     <script src="{{ url_for('static', filename='vendor/bootstrap/js/bootstrap.bundle.min.js') }}"></script>
     <script src="{{ url_for('static', filename='vendor/aos/aos.js') }}"></script>
-    <script>AOS.init({ duration: 1000, easing: 'ease-in-out' });</script>
-
     <script>
-        // Get all option cards
-        const optionCards = document.querySelectorAll('.option-card');
-        const uploadSection = document.getElementById('uploadSection');
-        const analysisTypeInput = document.getElementById('analysisType');
-        const uploadForm = document.getElementById('uploadForm');
-
-        // Add click event listeners to option cards
-        optionCards.forEach(card => {
-            card.addEventListener('click', function (event) {
-                event.preventDefault();
-
-                // Get the type from the data-type attribute
-                const type = this.getAttribute('data-type');
-
-                // Set the type in the hidden input
-                analysisTypeInput.value = type;
-
-                // Set the form action dynamically based on the type
-                if (type === 'chest') {
-                    uploadForm.action = "{{ url_for('upload.upload_image') }}";
-                } else if (type === 'oral') {
-                    uploadForm.action = "{{ url_for('upload.upload_image') }}";
-                } else if (type === 'breast') {
-                    uploadForm.action = "{{ url_for('upload.upload_image') }}";
-                }
-
-                // Hide the options and show the upload section
-                document.getElementById('hero').style.display = 'none';
-                uploadSection.style.display = 'block';
-            });
+        AOS.init({
+            duration: 800,
+            easing: 'ease-in-out',
+            once: true
         });
 
-        // Handle form submission for image upload
-        uploadForm.addEventListener('submit', function(event) {
+        // Get current analysis type from the hidden input
+        const currentType = document.querySelector('input[name="type"]').value;
+
+        // Define routes based on type
+        let uploadRoute, inferenceRoute, decryptRoute, resultRoute;
+
+        if (currentType === 'chest') {
+            // Chest X-ray Analysis Routes
+            uploadRoute = "{{ url_for('upload.upload_image') }}";
+            inferenceRoute = "{{ url_for('upload.inference') }}";
+            decryptRoute = "{{ url_for('upload.decrypt') }}";
+            resultRoute = "{{ url_for('upload.result') }}";
+        } else if (currentType === 'alzheimer') {
+            // Alzheimer's MRI Analysis Routes
+            uploadRoute = "{{ url_for('upload2.upload2_image') }}";
+            inferenceRoute = "{{ url_for('upload2.inference') }}";
+            decryptRoute = "{{ url_for('upload2.decrypt') }}";
+            resultRoute = "{{ url_for('upload2.result') }}";
+        }
+
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const formData = new FormData(this);
             const loadingScreen = document.getElementById('loadingCard');
-            const dynamicCards = document.getElementById('dynamicCards');
 
-            // Show loading screen
             loadingScreen.style.display = 'block';
 
-            fetch(uploadForm.action, {
+            fetch(uploadRoute, {
                 method: 'POST',
                 body: formData
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 loadingScreen.style.display = 'none';
                 if (data.success) {
-                    // Hide upload section and show dynamic cards
-                    uploadSection.style.display = 'none';
-                    dynamicCards.style.display = 'block';
+                    document.getElementById('hero').style.display = 'none';
+                    document.getElementById('dynamicCards').style.display = 'block';
+                    document.getElementById('inferenceButton').disabled = false;
                 } else {
-                    alert(`Error uploading image: ${data.error}`);
+                    throw new Error(data.error || 'Unknown error occurred');
                 }
             })
             .catch(error => {
                 loadingScreen.style.display = 'none';
-                alert(`Error uploading image: ${error.message}`);
+                alert(`Upload failed: ${error.message}`);
+                console.error('Upload error:', error);
             });
         });
 
-        // Handle Perform Inference button click
         document.getElementById('inferenceButton').addEventListener('click', function() {
             const loadingScreen = document.getElementById('loadingCard');
-            const inferenceProgressCard = document.getElementById('inferenceProgressCard');
-            const inferenceProgress = document.getElementById('inferenceProgress');
 
-            // Show loading screen and inference progress card
             loadingScreen.style.display = 'block';
-            inferenceProgressCard.classList.remove('hidden');
+            this.disabled = true;
 
-            // Update inference progress
-            inferenceProgress.textContent = "Starting encrypted inference...";
-
-            const type = analysisTypeInput.value;
-            let inferenceUrl;
-            if (type === 'chest') {
-                inferenceUrl = "{{ url_for('upload.inference') }}";
-            } else if (type === 'oral') {
-                inferenceUrl = "{{ url_for('upload.inference') }}";
-            } else if (type === 'breast') {
-                inferenceUrl = "{{ url_for('upload.inference') }}";
-            }
-
-            fetch(inferenceUrl, {
+            fetch(inferenceRoute, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ type: type })
+                body: JSON.stringify({ type: currentType })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 loadingScreen.style.display = 'none';
                 if (data.success) {
-                    // Update inference progress with the time taken
-                    inferenceProgress.textContent = `Inference completed in ${data.inference_time} seconds.`;
+                    document.getElementById('decryptButton').disabled = false;
+                    alert(`Analysis completed successfully in ${data.inference_time} seconds`);
                 } else {
-                    alert(`Error during inference: ${data.error}`);
+                    throw new Error(data.error || 'Analysis failed');
                 }
             })
             .catch(error => {
                 loadingScreen.style.display = 'none';
-                alert(`Error during inference: ${error.message}`);
+                this.disabled = false;
+                alert(`Analysis error: ${error.message}`);
+                console.error('Analysis error:', error);
             });
         });
 
-        // Handle Decrypt Result button click
         document.getElementById('decryptButton').addEventListener('click', function() {
             const loadingScreen = document.getElementById('loadingCard');
 
-            // Show loading screen
             loadingScreen.style.display = 'block';
+            this.disabled = true;
 
-            const type = analysisTypeInput.value;
-            let decryptUrl;
-            if (type === 'chest') {
-                decryptUrl = "{{ url_for('upload.decrypt') }}";
-            } else if (type === 'oral') {
-                decryptUrl = "{{ url_for('upload.decrypt') }}";
-            } else if (type === 'breast') {
-                decryptUrl = "{{ url_for('upload.decrypt') }}";
-            }
-
-            fetch(decryptUrl, {
+            fetch(decryptRoute, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ type: type })
+                body: JSON.stringify({ type: currentType })
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
             .then(data => {
                 loadingScreen.style.display = 'none';
                 if (data.success) {
-                    // Redirect to result page
-                    window.location.href = `/upload/result?prediction=${data.prediction}&confidence=${data.confidence}&type=${data.type}`;
+                    window.location.href = `${resultRoute}?prediction=${encodeURIComponent(data.prediction)}&confidence=${encodeURIComponent(data.confidence)}`;
                 } else {
-                    alert(`Error during decryption: ${data.error}`);
+                    throw new Error(data.error || 'Decryption failed');
                 }
             })
             .catch(error => {
                 loadingScreen.style.display = 'none';
-                alert(`Error during decryption: ${error.message}`);
+                this.disabled = false;
+                alert(`Decryption error: ${error.message}`);
+                console.error('Decryption error:', error);
             });
         });
     </script>
